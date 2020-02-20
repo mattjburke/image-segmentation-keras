@@ -4,8 +4,8 @@ from tqdm import tqdm
 import numpy as np
 
 
-data_path = "/root/Downloads/"
-out_path = "/root/Downloads/prepped/"
+data_path = "../../cityscape/"  # "/root/Downloads/"
+out_path = "../../cityscape/prepped/"  # "/root/Downloads/prepped/"
 
 
 all_anns = glob.glob(data_path+"gtFine/*/*/*gtFine_labelIds.png")
