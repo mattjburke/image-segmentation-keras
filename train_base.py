@@ -1,4 +1,8 @@
 from keras_segmentation.pretrained import pspnet_101_cityscapes
+from keras_segmentation.models.pspnet import pspnet_101
+import tensorflow as tf
+print("tensrflow version is ")
+tf.version
 
 # python -m keras_segmentation verify_dataset
 #  --images_path="dataset1/images_prepped_train/"
@@ -12,6 +16,11 @@ from keras_segmentation.pretrained import pspnet_101_cityscapes
 
 
 pret_model = pspnet_101_cityscapes()  # load the pretrained model trained on Cityscapes dataset
+
+print("pret_model")
+# evaluating the pretrained model
+print(pret_model.evaluate_segmentation(inp_images_dir=data_path + "images_prepped_test/",
+                                       annotations_dir=data_path + "annotations_prepped_test/"))
 
 '''
 def pspnet_101_cityscapes():
@@ -42,7 +51,7 @@ def pspnet_101(n_classes,  input_height=473, input_width=473):
     return model
 '''
 
-psp_gtfine = pspnet_101(19, 713, 713)
+psp_gtfine = pspnet_101(20, 713, 713)
 
 data_path = "./cityscape/prepped/"
 psp_gtfine.train(

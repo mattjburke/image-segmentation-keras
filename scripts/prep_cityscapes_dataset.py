@@ -4,9 +4,11 @@ from tqdm import tqdm
 import numpy as np
 
 
-data_path = "../../cityscape/"  # "/root/Downloads/"
-out_path = "../../cityscape/prepped/"  # "/root/Downloads/prepped/"
+data_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/"  # "/root/Downloads/"
+out_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"  # "/root/Downloads/prepped/"
 
+print(data_path)
+print(out_path)
 
 all_anns = glob.glob(data_path+"gtFine/*/*/*gtFine_labelIds.png")
 all_anns = sorted(all_anns)
