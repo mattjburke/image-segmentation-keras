@@ -6,6 +6,7 @@ import os
 import glob
 import six
 
+# history_csv = "model_history_log.csv"
 
 def find_latest_checkpoint(checkpoints_path, fail_safe=True):
 
@@ -47,7 +48,9 @@ def train(model,
           steps_per_epoch=512,
           val_steps_per_epoch=512,
           gen_use_multiprocessing=False,
-          optimizer_name='adadelta' , do_augment=False 
+          optimizer_name='adadelta',
+          do_augment=False,
+          history_csv=None
           ):
 
     from .models.all_models import model_from_name
@@ -116,10 +119,19 @@ def train(model,
             val_images, val_annotations,  val_batch_size,
             n_classes, input_height, input_width, output_height, output_width)
 
+    if history_csv is not None:
+        from keras.callbacks import CSVLogger
+        # csv_logger = CSVLogger("model_history_log.csv", append=True)
+        csv_logger = CSVLogger(history_csv, append=True)
+        # model.fit_generator(..., callbacks=[csv_logger])
+
     if not validate:
         for ep in range(epochs):
             print("Starting Epoch ", ep)
-            model.fit_generator(train_gen, steps_per_epoch, epochs=1)
+            if history_csv is not None:
+                model.fit_generator(train_gen, steps_per_epoch, epochs=1, callbacks=[csv_logger])
+            else:
+                model.fit_generator(train_gen, steps_per_epoch, epochs=1)
             if checkpoints_path is not None:
                 model.save_weights(checkpoints_path + "." + str(ep))
                 print("saved ", checkpoints_path + ".model." + str(ep))
@@ -127,9 +139,16 @@ def train(model,
     else:
         for ep in range(epochs):
             print("Starting Epoch ", ep)
-            model.fit_generator(train_gen, steps_per_epoch,
-                                validation_data=val_gen,
-                                validation_steps=val_steps_per_epoch,  epochs=1 , use_multiprocessing=gen_use_multiprocessing)
+            if history_csv is not None:
+                model.fit_generator(train_gen, steps_per_epoch,
+                                    validation_data=val_gen,
+                                    validation_steps=val_steps_per_epoch, epochs=1,
+                                    use_multiprocessing=gen_use_multiprocessing, callbacks=[csv_logger])
+            else:
+                model.fit_generator(train_gen, steps_per_epoch,
+                                    validation_data=val_gen,
+                                    validation_steps=val_steps_per_epoch, epochs=1,
+                                    use_multiprocessing=gen_use_multiprocessing)
             if checkpoints_path is not None:
                 model.save_weights(checkpoints_path + "." + str(ep))
                 print("saved ", checkpoints_path + ".model." + str(ep))
