@@ -5,6 +5,8 @@ print("tensrflow version is ")
 tf.version
 
 data_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"
+# data_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/dataset1/"
+# data_path = "/Users/MatthewBurke/PycharmProjects/image-segmentation-keras/cityscape/prepped/"
 
 # python -m keras_segmentation verify_dataset
 #  --images_path="dataset1/images_prepped_train/"
@@ -104,6 +106,7 @@ psp_gtfine.train(
     train_images=data_path + "images_prepped_train/",
     train_annotations=data_path + "annotations_prepped_train/",
     checkpoints_path="./checkpoints/psp_gtfine", epochs=5,
+    gen_use_multiprocessing=True,
     history_csv="./checkpoints/psp_gtfine/model_history_log.csv"
 )
 
