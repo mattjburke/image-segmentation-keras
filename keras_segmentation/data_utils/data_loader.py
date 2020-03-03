@@ -27,6 +27,7 @@ class_colors = [(random.randint(0, 255), random.randint(
 class DataLoaderError(Exception):
     pass
 
+
 def get_pairs_from_paths(images_path, segs_path, ignore_non_matching=False):
     """ Find all the images from the images_path directory and
         the segmentation images from the segs_path directory
@@ -159,6 +160,7 @@ def verify_segmentation_dataset(images_path, segs_path, n_classes, show_all_erro
         print("Found error during data loading\n{0}".format(str(e)))
         return False
 
+
 def image_segmentation_generator(images_path, segs_path, batch_size,
                                  n_classes, input_height, input_width,
                                  output_height, output_width,
@@ -184,5 +186,42 @@ def image_segmentation_generator(images_path, segs_path, batch_size,
                                    input_height, ordering=IMAGE_ORDERING))
             Y.append(get_segmentation_array(
                 seg, n_classes, output_width, output_height))
+
+        yield np.array(X), np.array(Y)
+
+
+def image_segmentation_pairs_generator(images_path, segs_path, batch_size,
+                                 n_classes, input_height, input_width,
+                                 output_height, output_width, gen_model,
+                                 do_augment=False):
+
+    img_seg_pairs = get_pairs_from_paths(images_path, segs_path)
+    random.shuffle(img_seg_pairs)
+    zipped = itertools.cycle(img_seg_pairs)
+
+    while True:
+        X = []
+        Y = []
+        for pair in range(batch_size):
+            im, seg = next(zipped)
+            use_fake = pair % 2
+
+            im = cv2.imread(im, 1)
+            seg = cv2.imread(seg, 1)
+
+            if do_augment:
+                im, seg[:, :, 0] = augment_seg(im, seg[:, :, 0])
+
+            im_array = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
+
+            if use_fake:
+                seg_array = gen_model(im_array)
+                Y.append(0)
+            else:
+                seg_array = get_segmentation_array(seg, n_classes, output_width, output_height)
+                Y.append(1)
+
+            stacked = np.dstack(im_array, seg_array)  # stacks along 3rd axis
+            X.append(stacked)
 
         yield np.array(X), np.array(Y)

@@ -4,6 +4,7 @@ import tensorflow as tf
 from .resnet50 import get_resnet50_encoder
 # from tensorflow.models.official.vision.image_classification.resnet_model import resnet
 
+
 def discriminator(pretrained_weights=None, input_height=224,  input_width=224):
     img_input, [f1, f2, f3, f4, f5] = get_resnet50_encoder(input_height=input_height,  input_width=input_width, classes=2)
     x = AveragePooling2D((7, 7), data_format=IMAGE_ORDERING, name='avg_pool')(f5)
