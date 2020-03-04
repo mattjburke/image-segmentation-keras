@@ -2,7 +2,9 @@ from keras_segmentation.pretrained import pspnet_101_cityscapes
 from keras_segmentation.models.pspnet import pspnet_101
 import tensorflow as tf
 print("tensrflow version is ")
-tf.version
+print(tf.__version__)
+
+
 
 data_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"
 # data_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/dataset1/"
@@ -28,7 +30,7 @@ psp_gtfine.train(
     epochs=5,  # doesn't do anything now
     batch_size=4,  # default 2
     validate=True,
-    val_images=data_path + "imagess_prepped_val",
+    val_images=data_path + "images_prepped_val",
     val_annotations=data_path + "annotations_prepped_val",
     val_batch_size=4,  # default 2
     auto_resume_checkpoint=False,
