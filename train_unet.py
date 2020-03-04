@@ -16,7 +16,8 @@ print("data path is ", data_path)
 # print(pret_model.evaluate_segmentation(inp_images_dir=data_path + "images_prepped_test/",
 #                                        annotations_dir=data_path + "annotations_prepped_test/"))
 
-unet = unet_mini(20, input_height=713, input_width=713)  # change to vgg_unet?  # n_classes changed from 19 to 20
+# using defults of input_height=360, input_width=480, actual images are input_height=1024, input_width=2048
+unet = unet_mini(20)  # change to vgg_unet?  # n_classes changed from 19 to 20
 print("model beginning training is ", unet.name)
 
 unet.train(

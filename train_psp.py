@@ -18,7 +18,8 @@ print("data path is ", data_path)
 
 
 # psp_101 produces OOM error when training
-psp_gtfine = pspnet(20, input_height=713, input_width=713)  # change to vgg_unet?  # n_classes changed from 19 to 20
+# input_height=1024, input_width=2048 actual image dims, use defaults of input_height=384, input_width=576 instead
+psp_gtfine = pspnet(20)  # n_classes changed from 19 to 20
 print("model beginning training is ", psp_gtfine.name)
 
 psp_gtfine.train(

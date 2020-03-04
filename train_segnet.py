@@ -18,7 +18,7 @@ print("data path is ", data_path)
 #                                        annotations_dir=data_path + "annotations_prepped_test/"))
 
 
-segnet = segnet(20, input_height=713, input_width=713)  # change to vgg_unet?  # n_classes changed from 19 to 20  # what is size of gtFine images?
+segnet = segnet(20, input_height=1024, input_width=2048)  # change to vgg_unet?  # n_classes changed from 19 to 20  # what is size of gtFine images?
 print("model beginning training is ", segnet.name)
 
 segnet.train(

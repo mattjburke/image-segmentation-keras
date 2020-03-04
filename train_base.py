@@ -17,7 +17,7 @@ print("data path is ", data_path)
 #                                        annotations_dir=data_path + "annotations_prepped_test/"))
 
 
-fcn8 = fcn_8(20, input_height=713, input_width=713)  # change to vgg_unet?  # n_classes changed from 19 to 20  # what is size of gtFine images?
+fcn8 = fcn_8(20, input_height=1024, input_width=2048)  # change to vgg_unet?  # n_classes changed from 19 to 20  # what is size of gtFine images?
 print("model beginning training is ", fcn8.name)
 
 fcn8.train(
@@ -51,7 +51,7 @@ print(fcn8.evaluate_segmentation(inp_images_dir=data_path + "images_prepped_test
 
 
 # psp_101 produces OOM error when training
-psp_gtfine = pspnet(20, input_height=713, input_width=713)  # change to vgg_unet?  # n_classes changed from 19 to 20
+psp_gtfine = pspnet(20, input_height=1024, input_width=2048)  # change to vgg_unet?  # n_classes changed from 19 to 20
 print("model beginning training is ", psp_gtfine.name)
 
 psp_gtfine.train(
@@ -84,7 +84,7 @@ print(psp_gtfine.evaluate_segmentation(inp_images_dir=data_path + "images_preppe
                                        annotations_dir=data_path + "annotations_prepped_test/"))
 
 
-unet = unet_mini(20, input_height=713, input_width=713)  # change to vgg_unet?  # n_classes changed from 19 to 20
+unet = unet_mini(20, input_height=1024, input_width=2048)  # change to vgg_unet?  # n_classes changed from 19 to 20
 print("model beginning training is ", unet.name)
 
 unet.train(

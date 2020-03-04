@@ -33,12 +33,12 @@ def find_latest_checkpoint(checkpoints_path, fail_safe=True):
 def train(model,
           train_images,
           train_annotations,
-          input_height=None,
-          input_width=None,
+          input_height=None,  # uses value from model if None
+          input_width=None,  # uses value from model if None
           n_classes=None,
           verify_dataset=True,
           checkpoints_path=None,
-          epochs=5,
+          epochs=5,  # not used since early stopping callback implemented 
           batch_size=2,
           validate=False,
           val_images=None,
@@ -113,7 +113,7 @@ def train(model,
 
     train_gen = image_segmentation_generator(
         train_images, train_annotations,  batch_size,  n_classes,
-        input_height, input_width, output_height, output_width , do_augment=do_augment )
+        input_height, input_width, output_height, output_width, do_augment=do_augment )
 
     if validate:
         val_gen = image_segmentation_generator(
