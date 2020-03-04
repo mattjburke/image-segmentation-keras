@@ -1,8 +1,5 @@
-from keras_segmentation.pretrained import pspnet_101_cityscapes
-from keras_segmentation.models.pspnet import pspnet
-from keras_segmentation.models.unet import unet_mini
-from keras_segmentation.models.fcn import fcn_8
 from keras_segmentation.models.segnet import segnet
+from datetime import datetime
 import tensorflow as tf
 print("tensorflow version is ", tf.__version__)
 
@@ -11,15 +8,13 @@ data_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/pr
 # data_path = "/Users/MatthewBurke/PycharmProjects/image-segmentation-keras/cityscape/prepped/"
 print("data path is ", data_path)
 
-# pret_model = pspnet_101_cityscapes()  # load the pretrained model trained on Cityscapes dataset
-# print("pret_model")
-# # evaluating the pretrained model
-# print(pret_model.evaluate_segmentation(inp_images_dir=data_path + "images_prepped_test/",
-#                                        annotations_dir=data_path + "annotations_prepped_test/"))
-
-
-segnet = segnet(20, input_height=1024, input_width=2048)  # change to vgg_unet?  # n_classes changed from 19 to 20  # what is size of gtFine images?
-print("model beginning training is ", segnet.name)
+print("loading segnet")
+# actual data is input_height=1024, input_width=2048, but using model defaults of input_height=416, input_width=608, encoder_level=3
+segnet = segnet(20)  # n_classes changed from 19 to 20
+print("model beginning training is ", segnet.model_name)
+time_begin = str(datetime.now()).replace(' ', '')
+print("beginning at", time_begin)
+checkpoints_path = "./checkpoints/segnet-"+time_begin+"/"
 
 segnet.train(
     train_images=data_path + "images_prepped_train/",
@@ -28,7 +23,7 @@ segnet.train(
     input_width=None,
     n_classes=None,
     verify_dataset=True,
-    checkpoints_path="./checkpoints/segnet",
+    checkpoints_path=checkpoints_path,
     epochs=5,  # doesn't do anything now
     batch_size=4,  # default 2
     validate=True,
@@ -42,10 +37,12 @@ segnet.train(
     gen_use_multiprocessing=True,  # default False
     optimizer_name='adadelta',
     do_augment=False,
-    history_csv="./checkpoints/segnet/model_history_log.csv"
+    history_csv=checkpoints_path+"model_history_log.csv"
 )
 
-print("Evaluating ", segnet.name)
+print("finished training at", datetime.now())
+
+print("Evaluating ", segnet.model_name)
 # evaluating the model
 print(segnet.evaluate_segmentation(inp_images_dir=data_path + "images_prepped_test/",
                                    annotations_dir=data_path + "annotations_prepped_test/"))

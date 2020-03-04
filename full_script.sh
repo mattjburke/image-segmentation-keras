@@ -19,7 +19,7 @@ echo "cuda version is -------- after tensorflow upgrade in previous run"
 nvcc --version
 
 python3 train_unet.py
-python3 train_psp.py
+python3 train_pspnet.py
 python3 train_segnet.py
 
 echo "trin_base complete"
