@@ -1,5 +1,6 @@
 from keras_segmentation.models.segnet import resnet50_segnet
 from datetime import datetime
+import os
 import tensorflow as tf
 print("tensorflow version is ", tf.__version__)
 
@@ -14,7 +15,8 @@ resnet50_segnet = resnet50_segnet(20)  # n_classes changed from 19 to 20
 print("model beginning training is ", resnet50_segnet.model_name)
 time_begin = str(datetime.now()).replace(' ', '')
 print("beginning at", time_begin)
-checkpoints_path = "./checkpoints/resnet50_segnet-"+time_begin+"/"
+checkpoints_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/resnet50_segnet-"+time_begin+"/"
+os.mkdir(checkpoints_path)
 
 resnet50_segnet.train(
     train_images=data_path + "images_prepped_train/",
