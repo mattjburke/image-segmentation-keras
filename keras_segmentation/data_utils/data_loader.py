@@ -204,7 +204,7 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size,
         Y = []
         for pair in range(batch_size):
             im, seg = next(zipped)
-            use_fake = pair % 2
+            use_fake = pair % 2  # use Math.rand() instead?
 
             im = cv2.imread(im, 1)
             seg = cv2.imread(seg, 1)
@@ -214,7 +214,7 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size,
 
             im_array = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
 
-            if use_fake:
+            if use_fake==1:
                 seg_array = gen_model(im_array)
                 Y.append(0)
             else:
