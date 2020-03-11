@@ -170,6 +170,8 @@ def train(model,
             print("Finished Epoch", ep)
     '''
 
+    model.summary()
+
     if not validate:
         model.fit_generator(train_gen, steps_per_epoch, epochs=1000, callbacks=[csv_logger, save_chckpts, early_stop])
     else:
