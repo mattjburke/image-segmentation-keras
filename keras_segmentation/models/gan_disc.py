@@ -9,10 +9,11 @@ from .resnet50 import get_resnet50_encoder
 def discriminator(pretrained_weights=None, input_height=224,  input_width=224):
     img_input, [f1, f2, f3, f4, f5] = get_resnet50_encoder(input_height=input_height,  input_width=input_width, classes=2)
     x = AveragePooling2D((7, 7))(f5)
+    x = Flatten()(x)
+    x = Dense(256)(x)
+    x = Dense(32)(x)
+    x = Dense(1, activation='sigmoid')(x)
     model = keras.Model(img_input, x)
-    model.add(Dense(256))
-    model.add(Dense(32))
-    model.add(Dense(1), activation='sigmoid')
     return model
 
 
