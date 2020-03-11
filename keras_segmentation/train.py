@@ -1,7 +1,7 @@
 import argparse
 import json
 from .data_utils.data_loader import image_segmentation_generator, \
-    verify_segmentation_dataset
+    verify_segmentation_dataset, image_segmentation_pairs_generator
 import os
 import glob
 import six
@@ -38,7 +38,7 @@ def train(model,
           n_classes=None,
           verify_dataset=True,
           checkpoints_path=None,
-          epochs=5,  # not used since early stopping callback implemented 
+          epochs=5,  # not used since early stopping callback implemented
           batch_size=2,
           validate=False,
           val_images=None,
@@ -51,7 +51,8 @@ def train(model,
           gen_use_multiprocessing=False,
           optimizer_name='adadelta',
           do_augment=False,
-          history_csv=None
+          history_csv=None,
+          train_gen=None
           ):
 
     from .models.all_models import model_from_name
@@ -111,9 +112,15 @@ def train(model,
             verified = verify_segmentation_dataset(val_images, val_annotations, n_classes)
             assert verified
 
-    train_gen = image_segmentation_generator(
-        train_images, train_annotations,  batch_size,  n_classes,
-        input_height, input_width, output_height, output_width, do_augment=do_augment )
+    if train_gen is None:
+        train_gen = image_segmentation_generator(
+            train_images, train_annotations,  batch_size,  n_classes,
+            input_height, input_width, output_height, output_width, do_augment=do_augment )
+
+    if train_gen is "discrim_input":
+        train_gen = image_segmentation_pairs_generator(
+            train_images, train_annotations,  batch_size,  n_classes,
+            input_height, input_width, output_height, output_width, do_augment=do_augment )
 
     if validate:
         val_gen = image_segmentation_generator(
