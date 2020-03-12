@@ -6,7 +6,7 @@ from .resnet50 import get_resnet50_encoder
 # from tensorflow.models.official.vision.image_classification.resnet_model import resnet
 
 
-def discriminator(pretrained_weights=None, input_height=224,  input_width=224):
+def discriminator(pretrained_weights=None, input_height=224,  input_width=224, model_name="resnet50_discrim"):
     img_input, [f1, f2, f3, f4, f5] = get_resnet50_encoder(input_height=input_height,  input_width=input_width, classes=2)
     x = AveragePooling2D((7, 7))(f5)
     x = Flatten()(x)
@@ -14,6 +14,7 @@ def discriminator(pretrained_weights=None, input_height=224,  input_width=224):
     x = Dense(32)(x)
     x = Dense(1, activation='sigmoid')(x)
     model = keras.Model(img_input, x)
+    model.model_name = model_name
     return model
 
 
