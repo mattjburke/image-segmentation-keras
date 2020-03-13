@@ -101,8 +101,8 @@ history_csv = checkpoints_path + "model_history_log.csv"
 n_classes = gen_segnet.n_classes
 input_height = gen_segnet.input_height
 input_width = gen_segnet.input_width
-output_height = gen_segnet.input_height  # output_height, need to change later
-output_width = gen_segnet.input_width  # output_width, need to change later
+output_height = gen_segnet.output_height  # output_height, need to change later
+output_width = gen_segnet.output_width  # output_width, need to change later
 
 if checkpoints_path is not None:
     with open(checkpoints_path + "_config.json", "w") as f:

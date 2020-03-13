@@ -216,7 +216,8 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size,
             if do_augment:
                 im, seg[:, :, 0] = augment_seg(im, seg[:, :, 0])
 
-            im_array = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
+            # im_array = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
+            im_array = get_image_array(im, output_width, output_height, ordering=IMAGE_ORDERING)
             print("im_array shape = ", im_array.shape)
 
             if use_fake == 1:

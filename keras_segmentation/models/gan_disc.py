@@ -7,7 +7,7 @@ from .resnet50 import get_resnet50_encoder
 
 
 def discriminator(pretrained_weights=None, input_height=224,  input_width=224, model_name="resnet50_discrim"):
-    img_input, [f1, f2, f3, f4, f5] = get_resnet50_encoder(input_height=input_height,  input_width=input_width, input_chan=4, classes=2)
+    img_input, [f1, f2, f3, f4, f5] = get_resnet50_encoder(input_height=input_height,  input_width=input_width, input_chan=4, classes=2, pretrained=None)
     x = AveragePooling2D((7, 7))(f5)
     x = Flatten()(x)
     x = Dense(256)(x)
