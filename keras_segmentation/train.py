@@ -115,7 +115,7 @@ def train(model,
     if train_gen is None:
         train_gen = image_segmentation_generator(
             train_images, train_annotations,  batch_size,  n_classes,
-            input_height, input_width, output_height, output_width, do_augment=do_augment )
+            input_height, input_width, output_height, output_width, do_augment=do_augment )  # does keras allow training on arrays of different shapes?
 
     if train_gen is "discrim_input":
         train_gen = image_segmentation_pairs_generator(

@@ -5,6 +5,7 @@ import random
 import six
 import numpy as np
 import cv2
+import keras
 
 try:
     from tqdm import tqdm
@@ -122,7 +123,7 @@ def get_segmentation_array(image_input, nClasses, width, height, no_reshape=Fals
         seg_labels[:, :, c] = (img == c).astype(int)
 
     if not no_reshape:
-        seg_labels = np.reshape(seg_labels, (width*height, nClasses))
+        seg_labels = np.reshape(seg_labels, (width*height, nClasses))  # The source of the error!
 
     return seg_labels
 
@@ -198,6 +199,7 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size,
     img_seg_pairs = get_pairs_from_paths(images_path, segs_path)
     random.shuffle(img_seg_pairs)
     zipped = itertools.cycle(img_seg_pairs)
+    # seq = keras.utils.Sequence()
 
     while True:
         X = []
@@ -208,20 +210,27 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size,
 
             im = cv2.imread(im, 1)
             seg = cv2.imread(seg, 1)
+            print("im shape = ", im.shape)
+            print("seg shape = ", seg.shape)
 
             if do_augment:
                 im, seg[:, :, 0] = augment_seg(im, seg[:, :, 0])
 
             im_array = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
+            print("im_array shape = ", im_array.shape)
 
             if use_fake == 1:
                 seg_array = gen_model(im_array)
+                print("seg_array fake1 shape = ", seg_array.shape)
+                seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
+                print("seg_array fake2 shape = ", seg_array.shape)
                 Y.append(0)
             else:
-                seg_array = get_segmentation_array(seg, n_classes, output_width, output_height)
+                seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
+                print("seg_array real shape = ", seg_array.shape)
                 Y.append(1)
 
-            stacked = np.dstack(im_array, seg_array)  # stacks along 3rd axis
+            stacked = np.dstack((im_array, seg_array))  # stacks along 3rd axis
             X.append(stacked)
 
         yield np.array(X), np.array(Y)

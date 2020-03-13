@@ -101,8 +101,8 @@ history_csv = checkpoints_path + "model_history_log.csv"
 n_classes = gen_segnet.n_classes
 input_height = gen_segnet.input_height
 input_width = gen_segnet.input_width
-output_height = gen_segnet.output_height
-output_width = gen_segnet.output_width
+output_height = gen_segnet.input_height  # output_height, need to change later
+output_width = gen_segnet.input_width  # output_width, need to change later
 
 if checkpoints_path is not None:
     with open(checkpoints_path + "_config.json", "w") as f:
@@ -114,6 +114,11 @@ if checkpoints_path is not None:
             "output_height": output_height,
             "output_width": output_width
         }, f)
+
+print("input_height =", input_height)
+print("input_width =", input_width)
+print("output_height =", output_height)
+print("output_width =", output_width)
 
 train_gen = image_segmentation_pairs_generator(
     train_images, train_annotations, batch_size, n_classes,
@@ -141,7 +146,7 @@ disc_segnet.compile(loss='binary_crossentropy',
                     optimizer='adadelta',
                     metrics=['accuracy'])
 
-disc_segnet.fit_generator(train_gen, steps_per_epoch,
+disc_segnet.fit_generator(train_gen, steps_per_epoch=steps_per_epoch,  # eliminated rest of variables before
                           validation_data=val_gen,
                           validation_steps=val_steps_per_epoch,
                           epochs=1000,
