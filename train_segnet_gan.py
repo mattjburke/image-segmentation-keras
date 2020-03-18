@@ -15,72 +15,33 @@ data_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/pr
 print("data path is ", data_path)
 
 print("loading gen_segnet")
-# actual data is input_height=1024, input_width=2048, but using model defaults of input_height=416, input_width=608, encoder_level=3
+# actual data is input_height=1024, input_width=2048, but using model defaults of input_height=416, input_width=608,
+# encoder_level=3
 gen_segnet = segnet(20, input_height=416, input_width=608, encoder_level=3)  # n_classes changed from 19 to 20
 
-# disc_seg = gan_disc.discriminator(input_height=416, input_width=608)
-#
-# image_segmentation_pairs_generator(images_path, segs_path, batch_size,
-#                                  n_classes, input_height, input_width,
-#                                  output_height, output_width, gen_model,
-#                                  do_augment=False)
-# train_images=data_path + "images_prepped_train/"
-# train_annotations=data_path + "annotations_prepped_train/"
-# batch_size=2
-# n_classes=20
-# input_height=416
-# input_width=608
-#
-# n_classes = model.n_classes
-# input_height = model.input_height
-# input_width = model.input_width
-# output_height = model.output_height
-# output_width = model.output_width
-#
-#
-# train_gen = image_segmentation_generator(
-#             train_images, train_annotations,  batch_size,  n_classes,
-#             input_height, input_width, output_height, output_width, do_augment=do_augment )
+n_classes = gen_segnet.n_classes
+input_height = gen_segnet.input_height
+input_width = gen_segnet.input_width
+output_height = gen_segnet.output_height
+output_width = gen_segnet.output_width
+print("n_classes = ", n_classes)
+print("input_height =", input_height)
+print("input_width =", input_width)
+print("output_height =", output_height)
+print("output_width =", output_width)
 
 print("creating disc_segnet")
-disc_segnet = gan_disc.discriminator(input_height=416, input_width=608)
+# output_height and output_width needs to be assigned to variable (intead of using gen_segnet.input_height) since
+# python is pass-by-object-reference
+disc_segnet = gan_disc.discriminator(input_height=output_height, input_width=output_width)
 
 time_begin = str(datetime.now()).replace(' ', '')
 print("beginning at", time_begin)
 checkpoints_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/segnet_disc-" + time_begin + "/"
 os.mkdir(checkpoints_path)
 
-# disc_segnet.train(
-#     train_images=data_path + "images_prepped_train/",
-#     train_annotations=data_path + "annotations_prepped_train/",
-#     input_height=None,
-#     input_width=None,
-#     n_classes=None,
-#     verify_dataset=True,
-#     checkpoints_path=checkpoints_path,
-#     epochs=5,  # doesn't do anything now
-#     batch_size=4,  # default 2
-#     validate=True,
-#     val_images=data_path + "images_prepped_val",
-#     val_annotations=data_path + "annotations_prepped_val",
-#     val_batch_size=4,  # default 2
-#     auto_resume_checkpoint=False,
-#     load_weights=None,
-#     steps_per_epoch=512,
-#     val_steps_per_epoch=512,
-#     gen_use_multiprocessing=True,  # default False
-#     optimizer_name='adadelta',
-#     do_augment=False,
-#     history_csv=checkpoints_path+"model_history_log.csv",
-#     train_gen="discrim_input"
-# )
-
-
 train_images = data_path + "images_prepped_train/"
 train_annotations = data_path + "annotations_prepped_train/"
-input_height = None
-input_width = None
-n_classes = None
 verify_dataset = True
 checkpoints_path = checkpoints_path
 epochs = 5  # doesn't do anything now
@@ -98,12 +59,6 @@ optimizer_name = 'adadelta'
 do_augment = False
 history_csv = checkpoints_path + "model_history_log.csv"
 
-n_classes = gen_segnet.n_classes
-input_height = gen_segnet.input_height
-input_width = gen_segnet.input_width
-output_height = gen_segnet.output_height  # output_height, need to change later
-output_width = gen_segnet.output_width  # output_width, need to change later
-
 if checkpoints_path is not None:
     with open(checkpoints_path + "_config.json", "w") as f:
         json.dump({
@@ -115,28 +70,25 @@ if checkpoints_path is not None:
             "output_width": output_width
         }, f)
 
-print("input_height =", input_height)
-print("input_width =", input_width)
-print("output_height =", output_height)
-print("output_width =", output_width)
+# input_height and input_width not used in image_segmentation_pairs_generator
+train_gen = image_segmentation_pairs_generator(train_images, train_annotations, batch_size, n_classes, input_height,
+                                               input_width, output_height, output_width, gen_segnet,
+                                               do_augment=do_augment)
 
-train_gen = image_segmentation_pairs_generator(
-    train_images, train_annotations, batch_size, n_classes,
-    input_height, input_width, output_height, output_width, gen_segnet, do_augment=do_augment)
+val_gen = image_segmentation_pairs_generator(val_images, val_annotations, val_batch_size, n_classes, input_height,
+                                             input_width, output_height, output_width, gen_segnet,
+                                             do_augment=do_augment)
 
-val_gen = image_segmentation_pairs_generator(
-    val_images, val_annotations, val_batch_size,
-    n_classes, input_height, input_width, output_height, gen_segnet, output_width)
-
-csv_logger = keras.callbacks.callbacks.CSVLogger(history_csv, append=True)
+# create 3 callbacks to log
 checkpoints_path_save = checkpoints_path + "-{epoch: 02d}-{val_loss: .2f}.hdf5"
+csv_logger = keras.callbacks.callbacks.CSVLogger(history_csv, append=True)
 save_chckpts = keras.callbacks.callbacks.ModelCheckpoint(checkpoints_path_save, monitor='val_loss',
                                                          verbose=1, save_best_only=False,
                                                          save_weights_only=False, mode='auto', period=1)
 early_stop = keras.callbacks.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=1,
                                                      mode='auto', baseline=None, restore_best_weights=False)
 
-disc_segnet.summary()
+# disc_segnet.summary()
 
 gen_segnet.compile(loss='categorical_crossentropy',
                    optimizer='adadelta',

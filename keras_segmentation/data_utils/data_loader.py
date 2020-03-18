@@ -205,6 +205,7 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size,
         X = []
         Y = []
         for pair in range(batch_size):
+            print("pair =", pair)
             im, seg = next(zipped)
             use_fake = pair % 2  # use Math.rand() instead?
 
@@ -216,13 +217,13 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size,
             if do_augment:
                 im, seg[:, :, 0] = augment_seg(im, seg[:, :, 0])
 
-            # im_array = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
-            im_array = get_image_array(im, output_width, output_height, ordering=IMAGE_ORDERING)
-            print("im_array shape = ", im_array.shape)
+            # im_array_in = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
+            im_array_out = get_image_array(im, output_width, output_height, ordering=IMAGE_ORDERING)
+            print("im_array_out shape = ", im_array_out.shape)
 
             if use_fake == 1:
-                seg_array = gen_model(im_array)
-                print("seg_array fake1 shape = ", seg_array.shape)
+                # seg_array = gen_model(im_array_in)
+                # print("seg_array fake1 shape = ", seg_array.shape)
                 seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
                 print("seg_array fake2 shape = ", seg_array.shape)
                 Y.append(0)
@@ -231,7 +232,7 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size,
                 print("seg_array real shape = ", seg_array.shape)
                 Y.append(1)
 
-            stacked = np.dstack((im_array, seg_array))  # stacks along 3rd axis
+            stacked = np.dstack((im_array_out, seg_array))  # stacks along 3rd axis
             X.append(stacked)
 
         yield np.array(X), np.array(Y)
