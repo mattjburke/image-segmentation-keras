@@ -4,7 +4,7 @@ from datetime import datetime
 import os
 import json
 import keras
-from keras_segmentation.data_utils.data_loader import image_segmentation_pairs_generator
+from keras_segmentation.data_utils.data_loader import image_segmentation_pairs_generator, image_flabels_generator
 import tensorflow as tf
 
 print("tensorflow version is ", tf.__version__)
@@ -71,13 +71,13 @@ if checkpoints_path is not None:
         }, f)
 
 # input_height and input_width not used in image_segmentation_pairs_generator
-train_gen = image_segmentation_pairs_generator(train_images, train_annotations, batch_size, n_classes, input_height,
+train_d_gen = image_segmentation_pairs_generator(train_images, train_annotations, batch_size, n_classes, input_height,
+                                                 input_width, output_height, output_width, gen_segnet,
+                                                 do_augment=do_augment)
+
+val_d_gen = image_segmentation_pairs_generator(val_images, val_annotations, val_batch_size, n_classes, input_height,
                                                input_width, output_height, output_width, gen_segnet,
                                                do_augment=do_augment)
-
-val_gen = image_segmentation_pairs_generator(val_images, val_annotations, val_batch_size, n_classes, input_height,
-                                             input_width, output_height, output_width, gen_segnet,
-                                             do_augment=do_augment)
 
 # create 3 callbacks to log
 checkpoints_path_save = checkpoints_path + "-{epoch: 02d}-{val_loss: .2f}.hdf5"
@@ -90,17 +90,32 @@ early_stop = keras.callbacks.callbacks.EarlyStopping(monitor='val_loss', min_del
 
 # disc_segnet.summary()
 
-gen_segnet.compile(loss='categorical_crossentropy',
-                   optimizer='adadelta',
-                   metrics=['accuracy'])
+gen_segnet.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
 
-disc_segnet.compile(loss='binary_crossentropy',
-                    optimizer='adadelta',
-                    metrics=['accuracy'])
+disc_segnet.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
 
-disc_segnet.fit_generator(train_gen, steps_per_epoch=steps_per_epoch,  # eliminated rest of variables before
-                          validation_data=val_gen,
-                          validation_steps=val_steps_per_epoch,
-                          epochs=1000,
-                          use_multiprocessing=gen_use_multiprocessing,
-                          callbacks=[csv_logger, save_chckpts, early_stop])
+# disc_segnet.fit_generator(train_d_gen,
+#                           steps_per_epoch=steps_per_epoch,  # eliminated rest of variables before
+#                           validation_data=val_d_gen,
+#                           validation_steps=val_steps_per_epoch,
+#                           epochs=1000,
+#                           use_multiprocessing=gen_use_multiprocessing,
+#                           callbacks=[csv_logger, save_chckpts, early_stop])
+
+gan = gan_disc.make_gan(gen_segnet, disc_segnet)
+
+gan.summary()
+
+gan.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+
+train_gan_gen = image_flabels_generator(train_images, train_annotations, batch_size, n_classes, input_height,
+                                        input_width, output_height, output_width, do_augment=False)
+
+gan.fit_generator(train_d_gen,
+                  steps_per_epoch=steps_per_epoch,  # eliminated rest of variables before
+                  validation_data=val_d_gen,
+                  validation_steps=val_steps_per_epoch,
+                  epochs=1000,
+                  use_multiprocessing=gen_use_multiprocessing,
+                  callbacks=[csv_logger, save_chckpts, early_stop])
+

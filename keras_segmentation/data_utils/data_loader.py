@@ -19,6 +19,8 @@ from ..models.config import IMAGE_ORDERING
 from .augmentation import augment_seg
 
 DATA_LOADER_SEED = 0
+FAKE = 0
+REAL = 1
 
 random.seed(DATA_LOADER_SEED)
 class_colors = [(random.randint(0, 255), random.randint(
@@ -226,14 +228,42 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size,
                 # print("seg_array fake1 shape = ", seg_array.shape)
                 seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
                 print("seg_array fake2 shape = ", seg_array.shape)
-                Y.append(0)
+                Y.append(FAKE)
             else:
                 seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
                 print("seg_array real shape = ", seg_array.shape)
-                Y.append(1)
+                Y.append(REAL)
 
             stacked = np.dstack((im_array_out, seg_array))  # stacks along 3rd axis
             X.append(stacked)
+
+        yield np.array(X), np.array(Y)
+
+
+def image_flabels_generator(images_path, segs_path, batch_size,
+                                 n_classes, input_height, input_width,
+                                 output_height, output_width,
+                                 do_augment=False):
+
+    img_seg_pairs = get_pairs_from_paths(images_path, segs_path)
+    random.shuffle(img_seg_pairs)
+    zipped = itertools.cycle(img_seg_pairs)
+
+    while True:
+        X = []
+        Y = []
+        for _ in range(batch_size):
+            im, seg = next(zipped)
+
+            im = cv2.imread(im, 1)
+            # seg = cv2.imread(seg, 1)
+
+            if do_augment:
+                im, seg[:, :, 0] = augment_seg(im, seg[:, :, 0])
+
+            X.append(get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING))
+            #Y.append(get_segmentation_array(seg, n_classes, output_width, output_height))
+            Y.append(FAKE)  # 0 means fake
 
         yield np.array(X), np.array(Y)
 
