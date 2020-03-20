@@ -3,6 +3,7 @@ from keras.layers import *
 import tensorflow as tf
 import tensorflow_gan as tfgan
 from .resnet50 import get_resnet50_encoder
+from ..data_utils.data_loader import get_image_array
 # from tensorflow.models.official.vision.image_classification.resnet_model import resnet
 
 
@@ -24,16 +25,23 @@ def make_gan(g_model, d_model):
     # make weights in the discriminator not trainable
     d_model.trainable = False
     orig_img = g_model.input
-    gen_seg_output = g_model.output
+    # gen_seg_output = g_model.output
+    shaped_o = Reshape([208, 304, 20])(g_model.output)
+    # orig_img, g_model.output_width, g_model.output_height, ordering=IMAGE_ORDERING
+    # im_array_out = get_image_array(orig_img, 304, 208)
+    # need to make sure this resizes in the same way as GT dataset (in dataloader)
+    im_array_out = Lambda(lambda x: tf.compat.v1.image.resize(x, [208, 304], align_corners=True))(orig_img)
+    # gen_seg_output = tf.reshape(gen_seg_output, [-1, g_model.output_height, g_model.output_width, g_model.n_classes])
 
     # connect image output and label input from generator as inputs to discriminator
-    stacked = tf.concatenate([orig_img, gen_seg_output], axis=3)
+    stacked = concatenate([im_array_out, shaped_o])
+    # stacked = tf.concat([orig_img, gen_seg_output], 3)  # values, axis
     gan_output = d_model(stacked)
     # define gan model as taking noise and label and outputting a classification
     model = keras.Model(orig_img, gan_output)
     # compile model
-    opt = tf.keras.optimizers.Adam(learning_rate=1e-4, beta_1=0.5, beta_2=0.999)
-    model.compile(loss='binary_crossentropy', optimizer=opt)
+    # opt = tf.keras.optimizers.Adam(learning_rate=1e-4, beta_1=0.5, beta_2=0.999)
+    # model.compile(loss='binary_crossentropy', optimizer=opt)
     return model
 
 

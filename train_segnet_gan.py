@@ -18,6 +18,8 @@ print("loading gen_segnet")
 # actual data is input_height=1024, input_width=2048, but using model defaults of input_height=416, input_width=608,
 # encoder_level=3
 gen_segnet = segnet(20, input_height=416, input_width=608, encoder_level=3)  # n_classes changed from 19 to 20
+gen_segnet.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+# gen_segnet.summary()
 
 n_classes = gen_segnet.n_classes
 input_height = gen_segnet.input_height
@@ -34,12 +36,15 @@ print("creating disc_segnet")
 # output_height and output_width needs to be assigned to variable (intead of using gen_segnet.input_height) since
 # python is pass-by-object-reference
 disc_segnet = gan_disc.discriminator(input_height=output_height, input_width=output_width)
+disc_segnet.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+# disc_segnet.summary()
 
 time_begin = str(datetime.now()).replace(' ', '')
 print("beginning at", time_begin)
 checkpoints_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/segnet_disc-" + time_begin + "/"
 os.mkdir(checkpoints_path)
 
+# assign variables used in functions from train.py
 train_images = data_path + "images_prepped_train/"
 train_annotations = data_path + "annotations_prepped_train/"
 verify_dataset = True
@@ -70,6 +75,7 @@ if checkpoints_path is not None:
             "output_width": output_width
         }, f)
 
+# create data generators to feed data into discriminator: images + ground truth segs and images + generated segs
 # input_height and input_width not used in image_segmentation_pairs_generator
 train_d_gen = image_segmentation_pairs_generator(train_images, train_annotations, batch_size, n_classes, input_height,
                                                  input_width, output_height, output_width, gen_segnet,
@@ -88,12 +94,7 @@ save_chckpts = keras.callbacks.callbacks.ModelCheckpoint(checkpoints_path_save, 
 early_stop = keras.callbacks.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=1,
                                                      mode='auto', baseline=None, restore_best_weights=False)
 
-# disc_segnet.summary()
-
-gen_segnet.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
-
-disc_segnet.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
-
+# train discriminator
 # disc_segnet.fit_generator(train_d_gen,
 #                           steps_per_epoch=steps_per_epoch,  # eliminated rest of variables before
 #                           validation_data=val_d_gen,
@@ -103,17 +104,24 @@ disc_segnet.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['
 #                           callbacks=[csv_logger, save_chckpts, early_stop])
 
 gan = gan_disc.make_gan(gen_segnet, disc_segnet)
-
-gan.summary()
-
 gan.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+# used to compile in method using:
+# opt = tf.keras.optimizers.Adam(learning_rate=1e-4, beta_1=0.5, beta_2=0.999)
+# model.compile(loss='binary_crossentropy', optimizer=opt)
 
+# gan.summary()
+
+# create data generators to feed into gan: images and FAKE label
 train_gan_gen = image_flabels_generator(train_images, train_annotations, batch_size, n_classes, input_height,
                                         input_width, output_height, output_width, do_augment=False)
 
-gan.fit_generator(train_d_gen,
+val_gan_gen = image_flabels_generator(val_images, val_annotations, val_batch_size, n_classes, input_height,
+                                      input_width, output_height, output_width, do_augment=False)
+
+# train GAN
+gan.fit_generator(train_gan_gen,
                   steps_per_epoch=steps_per_epoch,  # eliminated rest of variables before
-                  validation_data=val_d_gen,
+                  validation_data=val_gan_gen,
                   validation_steps=val_steps_per_epoch,
                   epochs=1000,
                   use_multiprocessing=gen_use_multiprocessing,
