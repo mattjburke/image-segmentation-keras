@@ -7,13 +7,17 @@ import keras
 from keras_segmentation.data_utils.data_loader import image_segmentation_pairs_generator, image_flabels_generator, \
     image_segmentation_pairs_dataset
 import tensorflow as tf
+from keras.models import load_model
 
 print("tensorflow version is ", tf.__version__)
 
 
-def train_gen(g_model, checkpoints_path, weights_path=None,
+def train_gen(g_model, checkpoints_path, load_g_model_path=None,
               data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
     os.mkdir(checkpoints_path)
+
+    if load_g_model_path is not None:
+        g_model = load_model(load_g_model_path)
 
     g_model.train(
         train_images=data_path + "images_prepped_train/",
@@ -30,7 +34,7 @@ def train_gen(g_model, checkpoints_path, weights_path=None,
         val_annotations=data_path + "annotations_prepped_val",
         val_batch_size=4,  # default 2
         auto_resume_checkpoint=False,
-        load_weights=weights_path,
+        load_weights=load_g_model_path,  # uses model.load_weights(load_weights)
         steps_per_epoch=512,
         val_steps_per_epoch=512,
         gen_use_multiprocessing=True,  # default False
@@ -46,9 +50,15 @@ def train_gen(g_model, checkpoints_path, weights_path=None,
                                         annotations_dir=data_path + "annotations_prepped_test/"))
 
 
-def train_disc(g_model, d_model, checkpoints_path, weights_path=None,
+def train_disc(g_model, d_model, checkpoints_path, load_g_model_path=None, load_d_model_path=None,
                data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
     os.mkdir(checkpoints_path)
+
+    if load_g_model_path is not None:
+        g_model = load_model(load_g_model_path)
+
+    if load_d_model_path is not None:
+        d_model = load_model(load_d_model_path)
 
     n_classes = g_model.n_classes
     input_height = g_model.input_height
@@ -110,7 +120,7 @@ def train_disc(g_model, d_model, checkpoints_path, weights_path=None,
                                                     do_augment=do_augment)
 
     # create 3 callbacks to log
-    checkpoints_path_save = checkpoints_path + "-{epoch: 02d}-{val_loss: .2f}.hdf5"
+    checkpoints_path_save = checkpoints_path + "e{epoch:02d}vl{val_loss:.2f}.hdf5"
     csv_logger = keras.callbacks.callbacks.CSVLogger(history_csv, append=True)
     save_chckpts = keras.callbacks.callbacks.ModelCheckpoint(checkpoints_path_save, monitor='val_loss',
                                                              verbose=1, save_best_only=False,
@@ -134,9 +144,18 @@ def train_disc(g_model, d_model, checkpoints_path, weights_path=None,
                 callbacks=[csv_logger, save_chckpts, early_stop])
 
 
-def train_gan(gan_model, g_model, d_model, checkpoints_path, weights_path=None,
+def train_gan(gan_model, g_model, d_model, checkpoints_path, load_g_model_path=None, load_d_model_path=None, load_gan_path=None,
               data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
     os.mkdir(checkpoints_path)
+
+    if load_g_model_path is not None:
+        g_model = load_model(load_g_model_path)
+
+    if load_d_model_path is not None:
+        d_model = load_model(load_d_model_path)
+
+    if load_gan_path is not None:
+        gan_model = load_model(load_gan_path)
 
     n_classes = g_model.n_classes
     input_height = g_model.input_height
@@ -181,7 +200,7 @@ def train_gan(gan_model, g_model, d_model, checkpoints_path, weights_path=None,
                                           input_width, output_height, output_width, do_augment=False)
 
     # create 3 callbacks to log
-    checkpoints_path_save = checkpoints_path + "-{epoch: 02d}-{val_loss: .2f}.hdf5"
+    checkpoints_path_save = checkpoints_path + "-{epoch:02d}-{val_loss:.2f}.hdf5"
     csv_logger = keras.callbacks.callbacks.CSVLogger(history_csv, append=True)
     save_chckpts = keras.callbacks.callbacks.ModelCheckpoint(checkpoints_path_save, monitor='val_loss',
                                                              verbose=1, save_best_only=False,
@@ -207,11 +226,14 @@ checkpoints_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/check
 gen_segnet = segnet(20, input_height=416, input_width=608, encoder_level=3)  # n_classes changed from 19 to 20
 gen_segnet.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
 
-time_begin = str(datetime.now()).replace(' ', '-')
-print("beginning generator training at", time_begin)
-gen_checkpoints_path = checkpoints_path + "gen_segnet-" + time_begin + "/"
-train_gen(gen_segnet, gen_checkpoints_path)
-print("saved at" + gen_checkpoints_path)
+# time_begin = str(datetime.now()).replace(' ', '-')
+# print("beginning generator training at", time_begin)
+# gen_checkpoints_path = checkpoints_path + "gen_segnet-" + time_begin + "/"
+# train_gen(gen_segnet, gen_checkpoints_path)
+# print("saved at" + gen_checkpoints_path)
+
+# just to test loading one previously saved model
+gen_segnet_load_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-21-21:50:30.495545/\ -\ 23-\ 0.82.hdf5"
 
 disc_segnet = gan_disc.discriminator(gen_segnet)
 disc_segnet.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
@@ -219,7 +241,7 @@ disc_segnet.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['
 time_begin = str(datetime.now()).replace(' ', '-')
 print("beginning discriminator training at", time_begin)
 disc_checkpoints_path = checkpoints_path + "disc_segnet-" + time_begin + "/"
-train_disc(gen_segnet, disc_segnet, disc_checkpoints_path)
+train_disc(gen_segnet, disc_segnet, disc_checkpoints_path, load_d_model_path=)
 print("saved at" + disc_checkpoints_path)
 
 gan_segnet = gan_disc.make_gan(gen_segnet, disc_segnet)
@@ -230,3 +252,4 @@ print("beginning discriminator training at", time_begin)
 gan_checkpoints_path = checkpoints_path + "gan_segnet-" + time_begin + "/"
 train_gan(gan_segnet, gen_segnet, disc_segnet, gan_checkpoints_path)
 print("saved at" + gan_checkpoints_path)
+
