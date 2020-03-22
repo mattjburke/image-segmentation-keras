@@ -4,7 +4,8 @@ from datetime import datetime
 import os
 import json
 import keras
-from keras_segmentation.data_utils.data_loader import image_segmentation_pairs_generator, image_flabels_generator
+from keras_segmentation.data_utils.data_loader import image_segmentation_pairs_generator, image_flabels_generator, \
+    image_segmentation_pairs_dataset
 import tensorflow as tf
 
 print("tensorflow version is ", tf.__version__)
@@ -84,17 +85,29 @@ def train_disc(g_model, d_model, checkpoints_path, weights_path=None,
                 "output_width": output_width
             }, f)
 
+    # create dataset of generated images from g_model
+
     # create data generators to feed data into discriminator: images + ground truth segs and images + generated segs
     # input_height and input_width not used in image_segmentation_pairs_generator
-    train_d_gen = image_segmentation_pairs_generator(train_images, train_annotations, batch_size, n_classes,
-                                                     input_height, input_width,
-                                                     output_height, output_width, g_model,
-                                                     do_augment=do_augment)
+    # train_d_gen = image_segmentation_pairs_generator(train_images, train_annotations, batch_size, n_classes,
+    #                                                  input_height, input_width,
+    #                                                  output_height, output_width, g_model,
+    #                                                  do_augment=do_augment)
+    #
+    # val_d_gen = image_segmentation_pairs_generator(val_images, val_annotations, val_batch_size, n_classes,
+    #                                                input_height, input_width,
+    #                                                output_height, output_width, g_model,
+    #                                                do_augment=do_augment)
 
-    val_d_gen = image_segmentation_pairs_generator(val_images, val_annotations, val_batch_size, n_classes,
-                                                   input_height, input_width,
-                                                   output_height, output_width, g_model,
-                                                   do_augment=do_augment)
+    X_train, Y_train = image_segmentation_pairs_dataset(train_images, train_annotations, batch_size, n_classes,
+                                                        input_height, input_width,
+                                                        output_height, output_width, g_model,
+                                                        do_augment=do_augment)
+
+    X_val, Y_val = image_segmentation_pairs_dataset(val_images, val_annotations, val_batch_size, n_classes,
+                                                    input_height, input_width,
+                                                    output_height, output_width, g_model,
+                                                    do_augment=do_augment)
 
     # create 3 callbacks to log
     checkpoints_path_save = checkpoints_path + "-{epoch: 02d}-{val_loss: .2f}.hdf5"
@@ -106,13 +119,19 @@ def train_disc(g_model, d_model, checkpoints_path, weights_path=None,
                                                          mode='auto', baseline=None, restore_best_weights=False)
 
     # train discriminator
-    d_model.fit_generator(train_d_gen,
-                          steps_per_epoch=steps_per_epoch,  # eliminated rest of variables before
-                          validation_data=val_d_gen,
-                          validation_steps=val_steps_per_epoch,
-                          epochs=1000,
-                          use_multiprocessing=gen_use_multiprocessing,
-                          callbacks=[csv_logger, save_chckpts, early_stop])
+    # d_model.fit_generator(train_d_gen,
+    #                       steps_per_epoch=steps_per_epoch,  # eliminated rest of variables before
+    #                       validation_data=val_d_gen,
+    #                       validation_steps=val_steps_per_epoch,
+    #                       epochs=1000,
+    #                       use_multiprocessing=gen_use_multiprocessing,
+    #                       callbacks=[csv_logger, save_chckpts, early_stop])
+
+    d_model.fit(X_train, Y_train,
+                validation_data=(X_val, Y_val),
+                epochs=1000,
+                use_multiprocessing=gen_use_multiprocessing,  # Used for generator or keras.utils.Sequence input only
+                callbacks=[csv_logger, save_chckpts, early_stop])
 
 
 def train_gan(gan_model, g_model, d_model, checkpoints_path, weights_path=None,
@@ -200,7 +219,7 @@ disc_segnet.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['
 time_begin = str(datetime.now()).replace(' ', '-')
 print("beginning discriminator training at", time_begin)
 disc_checkpoints_path = checkpoints_path + "disc_segnet-" + time_begin + "/"
-train_disc(disc_segnet, disc_checkpoints_path)
+train_disc(gen_segnet, disc_segnet, disc_checkpoints_path)
 print("saved at" + disc_checkpoints_path)
 
 gan_segnet = gan_disc.make_gan(gen_segnet, disc_segnet)
@@ -211,5 +230,3 @@ print("beginning discriminator training at", time_begin)
 gan_checkpoints_path = checkpoints_path + "gan_segnet-" + time_begin + "/"
 train_gan(gan_segnet, gen_segnet, disc_segnet, gan_checkpoints_path)
 print("saved at" + gan_checkpoints_path)
-
-

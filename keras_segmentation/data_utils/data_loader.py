@@ -219,15 +219,15 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size,
             if do_augment:
                 im, seg[:, :, 0] = augment_seg(im, seg[:, :, 0])
 
-            # im_array_in = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
+            im_array_in = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
             im_array_out = get_image_array(im, output_width, output_height, ordering=IMAGE_ORDERING)
             print("im_array_out shape = ", im_array_out.shape)
 
             if use_fake == 1:
-                # seg_array = gen_model(im_array_in)
-                # print("seg_array fake1 shape = ", seg_array.shape)
-                seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
-                print("seg_array fake2 shape = ", seg_array.shape)
+                seg_array = gen_model.predict(im_array_in)
+                print("seg_array fake1 shape = ", seg_array.shape)
+                # seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
+                # print("seg_array fake2 shape = ", seg_array.shape)
                 Y.append(FAKE)
             else:
                 seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
@@ -238,6 +238,55 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size,
             X.append(stacked)
 
         yield np.array(X), np.array(Y)
+
+
+def image_segmentation_pairs_dataset(images_path, segs_path, batch_size,
+                                 n_classes, input_height, input_width,
+                                 output_height, output_width, gen_model,
+                                 do_augment=False):
+
+    img_seg_pairs = get_pairs_from_paths(images_path, segs_path)
+    random.shuffle(img_seg_pairs)
+    zipped = itertools.cycle(img_seg_pairs)
+    # seq = keras.utils.Sequence()
+
+    # while True:
+    X = []
+    Y = []
+    for pair in zipped:
+        print("pair =", pair)
+        im, seg = next(zipped)
+        use_fake = pair % 2  # use Math.rand() instead?
+
+        im = cv2.imread(im, 1)
+        seg = cv2.imread(seg, 1)
+        print("im shape = ", im.shape)
+        print("seg shape = ", seg.shape)
+
+        if do_augment:
+            im, seg[:, :, 0] = augment_seg(im, seg[:, :, 0])
+
+        im_array_in = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
+        im_array_out = get_image_array(im, output_width, output_height, ordering=IMAGE_ORDERING)
+        print("im_array_out shape = ", im_array_out.shape)
+
+        if use_fake == 1:
+            seg_array = gen_model.predict(im_array_in)
+            print("seg_array fake1 shape = ", seg_array.shape)
+            # seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
+            # print("seg_array fake2 shape = ", seg_array.shape)
+            Y.append(FAKE)
+        else:
+            seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
+            print("seg_array real shape = ", seg_array.shape)
+            Y.append(REAL)
+
+        stacked = np.dstack((im_array_out, seg_array))  # stacks along 3rd axis
+        X.append(stacked)
+
+        # yield np.array(X), np.array(Y)
+
+    return X, Y
 
 
 def image_flabels_generator(images_path, segs_path, batch_size,
