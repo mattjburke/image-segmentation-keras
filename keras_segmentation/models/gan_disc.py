@@ -7,7 +7,9 @@ from ..data_utils.data_loader import get_image_array
 # from tensorflow.models.official.vision.image_classification.resnet_model import resnet
 
 
-def discriminator(pretrained_weights=None, input_height=224,  input_width=224, model_name="resnet50_discrim"):
+def discriminator(g_model, pretrained_weights=None, model_name="resnet50_discrim"):
+    input_height = g_model.output_height
+    input_width = g_model.output_width
     img_input, [f1, f2, f3, f4, f5] = get_resnet50_encoder(input_height=input_height,  input_width=input_width,
                                                            input_chan=23, classes=2, pretrained=None)
     x = AveragePooling2D((7, 7))(f5)

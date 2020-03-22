@@ -20,6 +20,9 @@ print("loading gen_segnet")
 gen_segnet = segnet(20, input_height=416, input_width=608, encoder_level=3)  # n_classes changed from 19 to 20
 gen_segnet.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
 # gen_segnet.summary()
+# create data generators for generator
+# train generator and save weights and loss/accuracy plots
+
 
 n_classes = gen_segnet.n_classes
 input_height = gen_segnet.input_height
@@ -35,11 +38,11 @@ print("output_width =", output_width)
 print("creating disc_segnet")
 # output_height and output_width needs to be assigned to variable (intead of using gen_segnet.input_height) since
 # python is pass-by-object-reference
-disc_segnet = gan_disc.discriminator(input_height=output_height, input_width=output_width)
+disc_segnet = gan_disc.discriminator(gen_segnet)
 disc_segnet.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
 # disc_segnet.summary()
 
-time_begin = str(datetime.now()).replace(' ', '')
+time_begin = str(datetime.now()).replace(' ', '-')
 print("beginning at", time_begin)
 checkpoints_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/segnet_disc-" + time_begin + "/"
 os.mkdir(checkpoints_path)
