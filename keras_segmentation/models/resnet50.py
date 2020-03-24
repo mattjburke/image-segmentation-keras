@@ -127,7 +127,7 @@ def get_resnet50_encoder(input_height=224,  input_width=224, input_chan=3,
                          pooling=None,
                          classes=1000):
 
-    # assert input_height % 32 == 0  # why are these checks needed?
+    # assert input_height % 32 == 0
     # assert input_width % 32 == 0
 
     if IMAGE_ORDERING == 'channels_first':

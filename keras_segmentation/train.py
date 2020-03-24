@@ -128,47 +128,14 @@ def train(model,
             n_classes, input_height, input_width, output_height, output_width)
 
     if history_csv is not None:
-        # csv_logger = CSVLogger("model_history_log.csv", append=True)
         csv_logger = keras.callbacks.callbacks.CSVLogger(history_csv, append=True)
-        # model.fit_generator(..., callbacks=[csv_logger])
+
     checkpoints_path_save = checkpoints_path +  "-{epoch: 02d}-{val_loss: .2f}.hdf5"
     save_chckpts = keras.callbacks.callbacks.ModelCheckpoint(checkpoints_path_save, monitor='val_loss',
                                                              verbose=1, save_best_only=False,
                                                              save_weights_only=False, mode='auto', period=1)
     early_stop = keras.callbacks.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=1,
                                                          mode='auto', baseline=None, restore_best_weights=False)
-    '''
-    if not validate:
-        for ep in range(epochs):
-            print("Starting Epoch ", ep)
-            if history_csv is not None:
-                model.fit_generator(train_gen, steps_per_epoch, epochs=1, callbacks=[csv_logger])
-                print("saved history to csv_logger ", history_csv)
-            else:
-                model.fit_generator(train_gen, steps_per_epoch, epochs=1)
-            if checkpoints_path is not None:
-                model.save_weights(checkpoints_path + "." + str(ep))
-                print("saved ", checkpoints_path + ".model." + str(ep))
-            print("Finished Epoch", ep)
-    else:
-        for ep in range(epochs):
-            print("Starting Epoch ", ep)
-            if history_csv is not None:
-                model.fit_generator(train_gen, steps_per_epoch,
-                                    validation_data=val_gen,
-                                    validation_steps=val_steps_per_epoch, epochs=1,
-                                    use_multiprocessing=gen_use_multiprocessing, callbacks=[csv_logger])
-                print("saved history to csv_logger ", history_csv)
-            else:
-                model.fit_generator(train_gen, steps_per_epoch,
-                                    validation_data=val_gen,
-                                    validation_steps=val_steps_per_epoch, epochs=1,
-                                    use_multiprocessing=gen_use_multiprocessing)
-            if checkpoints_path is not None:
-                model.save_weights(checkpoints_path + "." + str(ep))
-                print("saved ", checkpoints_path + ".model." + str(ep))
-            print("Finished Epoch", ep)
-    '''
 
     model.summary()
 
@@ -181,3 +148,4 @@ def train(model,
                             epochs=1000,
                             use_multiprocessing=gen_use_multiprocessing,
                             callbacks=[csv_logger, save_chckpts, early_stop])
+

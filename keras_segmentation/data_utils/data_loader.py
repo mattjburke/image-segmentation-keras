@@ -240,10 +240,13 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size,
         yield np.array(X), np.array(Y)
 
 
-def image_segmentation_pairs_dataset(images_path, segs_path, batch_size,
-                                 n_classes, input_height, input_width,
-                                 output_height, output_width, gen_model,
-                                 do_augment=False):
+def image_segmentation_pairs_dataset(images_path, segs_path, gen_model, do_augment=False):
+
+    n_classes = gen_model.n_classes
+    g_input_height = gen_model.input_height
+    g_input_width = gen_model.input_width
+    g_output_height = gen_model.output_height
+    g_output_width = gen_model.output_width
 
     img_seg_pairs = get_pairs_from_paths(images_path, segs_path)
     random.shuffle(img_seg_pairs)
@@ -266,8 +269,8 @@ def image_segmentation_pairs_dataset(images_path, segs_path, batch_size,
         if do_augment:
             im, seg[:, :, 0] = augment_seg(im, seg[:, :, 0])
 
-        im_array_in = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
-        im_array_out = get_image_array(im, output_width, output_height, ordering=IMAGE_ORDERING)
+        im_array_in = get_image_array(im, g_input_width, g_input_height, ordering=IMAGE_ORDERING)
+        im_array_out = get_image_array(im, g_output_width, g_output_height, ordering=IMAGE_ORDERING)
         print("im_array_out shape = ", im_array_out.shape)
 
         if use_fake == 1:
@@ -277,7 +280,7 @@ def image_segmentation_pairs_dataset(images_path, segs_path, batch_size,
             # print("seg_array fake2 shape = ", seg_array.shape)
             Y.append(FAKE)
         else:
-            seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
+            seg_array = get_segmentation_array(seg, n_classes, g_output_width, g_output_height, no_reshape=True)
             print("seg_array real shape = ", seg_array.shape)
             Y.append(REAL)
 
@@ -289,10 +292,7 @@ def image_segmentation_pairs_dataset(images_path, segs_path, batch_size,
     return X, Y
 
 
-def image_flabels_generator(images_path, segs_path, batch_size,
-                                 n_classes, input_height, input_width,
-                                 output_height, output_width,
-                                 do_augment=False):
+def image_flabels_generator(images_path, segs_path, batch_size, input_height, input_width, do_augment=False):
 
     img_seg_pairs = get_pairs_from_paths(images_path, segs_path)
     random.shuffle(img_seg_pairs)
