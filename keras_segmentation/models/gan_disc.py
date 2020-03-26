@@ -2,6 +2,7 @@ import keras
 from keras.layers import *
 import tensorflow as tf
 from .resnet50 import get_resnet50_encoder
+from .model_utils import add_input_dims
 
 
 def discriminator(g_model, pretrained_weights=None, model_name="resnet50_discrim"):
@@ -15,6 +16,7 @@ def discriminator(g_model, pretrained_weights=None, model_name="resnet50_discrim
     x = Dense(32)(x)
     x = Dense(1, activation='sigmoid')(x)
     model = keras.Model(img_input, x)
+    model = add_input_dims(model)
     model.model_name = model_name
     return model
 
@@ -30,6 +32,7 @@ def make_gan(g_model, d_model):
     stacked = concatenate([im_array_out, shaped_o])
     gan_output = d_model(stacked)
     model = keras.Model(orig_img, gan_output)
+    model = add_input_dims(model)  # use this or set to match g_model?
     return model
 
 

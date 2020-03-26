@@ -133,7 +133,7 @@ def train(model,
     checkpoints_path_save = checkpoints_path +  "-{epoch: 02d}-{val_loss: .2f}.hdf5"
     save_chckpts = keras.callbacks.callbacks.ModelCheckpoint(checkpoints_path_save, monitor='val_loss',
                                                              verbose=1, save_best_only=False,
-                                                             save_weights_only=False, mode='auto', period=1)
+                                                             save_weights_only=True, mode='auto', period=1)
     early_stop = keras.callbacks.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=1,
                                                          mode='auto', baseline=None, restore_best_weights=False)
 
