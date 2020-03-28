@@ -13,8 +13,13 @@ from keras_segmentation.models.model_utils import add_input_dims
 print("tensorflow version is ", tf.__version__)
 
 
-def train_gen(g_model, checkpoints_path, load_g_model_path=None,
+def train_gen(g_model=None, checkpoints_path=None, load_g_model_path=None,
               data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
+    if (checkpoints_path is None) or (g_model is None):
+        print("train_gen() needs a g_model and checkpoints_path")
+    assert checkpoints_path is not None
+    assert g_model is not None
+
     os.mkdir(checkpoints_path)
 
     g_model.train(
@@ -41,27 +46,23 @@ def train_gen(g_model, checkpoints_path, load_g_model_path=None,
         history_csv=checkpoints_path + "model_history_log.csv"
     )
 
-    print("finished training at", datetime.now())
+    print("finished generator training at", datetime.now())
 
     print("Evaluating ", g_model.model_name)
     print(g_model.evaluate_segmentation(inp_images_dir=data_path + "images_prepped_test/",
                                         annotations_dir=data_path + "annotations_prepped_test/"))
 
 
-def train_disc(g_model, d_model, checkpoints_path, load_g_weights_path=None, load_d_model_path=None,
+# g_model is passed to create training dataset
+def train_disc(g_model=None, d_model=None, checkpoints_path=None,
                data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
+    if (checkpoints_path is None) or (d_model is None) or (g_model is None):
+        print("train_disc() needs a d_model, g_model, and checkpoints_path")
+    assert checkpoints_path is not None
+    assert d_model is not None
+    assert g_model is not None
+
     os.mkdir(checkpoints_path)
-
-    if load_g_weights_path is not None and len(load_g_weights_path) > 0:
-        print("Loading weights from ", load_g_weights_path)
-        g_model.load_weights(load_g_weights_path)
-
-    # if load_g_model_path is not None:
-    #     g_model = load_weights(load_g_model_path)
-
-    # if load_d_model_path is not None:
-    #     d_model = load_model(load_d_model_path)
-    #     d_model = add_input_dims(d_model)
 
     train_images = data_path + "images_prepped_train/"
     train_annotations = data_path + "annotations_prepped_train/"
@@ -100,27 +101,25 @@ def train_disc(g_model, d_model, checkpoints_path, load_g_weights_path=None, loa
                 use_multiprocessing=False,  # Used for generator or keras.utils.Sequence input only
                 callbacks=[csv_logger, save_chckpts, early_stop])
 
+    print("finished discriminator training at", datetime.now())
 
-def train_gan(checkpoints_path, gan_model=None, g_model=None, d_model=None,
-              load_g_model_path=None, load_d_model_path=None, load_gan_path=None,
+
+# g_model is passed to use input_height, output_height, etc to create data loaders and save to log
+def train_gan(checkpoints_path=None, gan_model=None, g_model=None,
               data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
+
+    if (checkpoints_path is None) or (gan_model is None) or (g_model is None):
+        print("train_gan() needs a gan_model, g_model, and checkpoints_path")
+    assert checkpoints_path is not None
+    assert gan_model is not None
+    assert g_model is not None
 
     os.mkdir(checkpoints_path)
 
-    # if load_g_model_path is not None:
-    #     g_model = load_model(load_g_model_path)  # gets rid of model.input_height and other variables?
-    #
-    # if load_d_model_path is not None:
-    #     d_model = load_model(load_d_model_path)
-    #
-    # if load_gan_path is not None:
-    #     gan_model = load_model(load_gan_path)
-    #
-    # if gan_model is None:
-    #     gan_model = make_gan(g_model, d_model)
-
     input_height = g_model.input_height
     input_width = g_model.input_width
+    # input_height = gan_model.input_height  # added with add_input_dims(model)
+    # input_width = gan_model.input_width
 
     train_images = data_path + "images_prepped_train/"
     train_annotations = data_path + "annotations_prepped_train/"
@@ -170,6 +169,8 @@ def train_gan(checkpoints_path, gan_model=None, g_model=None, d_model=None,
                             epochs=1000,
                             use_multiprocessing=gen_use_multiprocessing,
                             callbacks=[csv_logger, save_chckpts, early_stop])
+
+    print("finished gan training at", datetime.now())
 
 
 def eval_gen(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
