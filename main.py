@@ -1,7 +1,8 @@
 from keras_segmentation.models.segnet import segnet
 import keras_segmentation.models.gan_disc as gan_disc
-from .train_functions import train_gen, train_disc, train_gan, eval_gen
+from keras_segmentation.train_functions import train_gen, train_disc, train_gan, eval_gen
 from datetime import datetime
+print("finished imports")
 
 pronto_data_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"
 pronto_checkpoints_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/"
@@ -71,4 +72,15 @@ print("beginning generator training at", time_begin)
 gen_checkpoints_path2 = checkpoints_path + "gen_segnet_improved-" + time_begin + "/"
 train_gen(gen_segnet, gen_checkpoints_path2, data_path=data_path)
 print("saved at" + gen_checkpoints_path2)
+
+# make separate generator to compare using normal gan
+gen_segnet_normal = segnet(20, input_height=416, input_width=608, encoder_level=3)  # n_classes changed from 19 to 20
+gen_segnet_normal.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+gen_segnet_normal.set_weights(gen_weights)
+# create and train normal discriminator
+# create and train normal gan
+# load weights from normal GAN into generator to evaluate improvement
+# continue loop of disc training (from newly created datset), gan training, and re-eval of gen
+# compare improvement from normal gan to improvement from my stacked input gan
+
 
