@@ -51,8 +51,9 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
 # Train a generator as a base for comparing gan improvements
 gen_segnet = segnet(20, input_height=416, input_width=608, encoder_level=3)  # n_classes changed from 19 to 20
 gen_segnet.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
-gen_checkpoints_path = get_path("gen_segnet")
-train_gen(gen_segnet, gen_checkpoints_path, data_path=data_path)
+# gen_checkpoints_path = get_path("gen_segnet")
+# train_gen(gen_segnet, gen_checkpoints_path, data_path=data_path)
+gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-28-18:23:33.163780/- 9- 0.73.hdf5")
 gen_orig_weights = gen_segnet.get_weights()
 
 # Train my stacked input gan
@@ -64,7 +65,7 @@ train_alternately(gen_model=gen_segnet, d_model=disc_segnet_stacked, gan_model=g
                   gen_model_name="segnet", train_gen_first=False)
 
 # Train a regular gan
-gen_segnet.load_weights(gen_orig_weights)
+gen_segnet.set_weights(gen_orig_weights)
 disc_segnet_reg = gan_disc.discriminator_reg(gen_segnet)
 disc_segnet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
 gan_segnet_reg = gan_disc.make_gan_reg(gen_segnet, disc_segnet_stacked)

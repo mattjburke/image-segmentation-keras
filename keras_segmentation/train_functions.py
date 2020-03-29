@@ -48,9 +48,10 @@ def train_gen(g_model=None, checkpoints_path=None, load_g_model_path=None,
 
     print("finished generator training at", datetime.now())
 
-    print("Evaluating ", g_model.model_name)
-    print(g_model.evaluate_segmentation(inp_images_dir=data_path + "images_prepped_test/",
-                                        annotations_dir=data_path + "annotations_prepped_test/"))
+    # runs, but eval function seems off since mostly outputs 0s
+    # print("Evaluating ", g_model.model_name)
+    # print(g_model.evaluate_segmentation(inp_images_dir=data_path + "images_prepped_test/",
+    #                                     annotations_dir=data_path + "annotations_prepped_test/"))
 
 
 # g_model is passed to create training dataset
@@ -183,7 +184,7 @@ def eval_gen(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-segmentat
     input_width = gen_model.input_width
     output_height = gen_model.output_height
     output_width = gen_model.output_width
-    batch_size = 4
+    batch_size = 5  # what size can be handled in memory? bigger = faster
     do_augment = False
     # history_csv = checkpoints_path + "model_history_log.csv"
 
@@ -191,7 +192,9 @@ def eval_gen(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-segmentat
         test_images, test_annotations, batch_size, n_classes,
         input_height, input_width, output_height, output_width, do_augment=do_augment)
 
-    return gen_model.evaluate_generator(test_data_gen, use_multiprocessing=True, verbose=1)
+    # there are 1525 test images, 2975 train, and 500 val
+    # with batch size 5, 1525/5 = 305
+    return gen_model.evaluate_generator(test_data_gen, steps=305, use_multiprocessing=True, verbose=1)
 
 
 # def alternate_training(gan_model, d_model):
