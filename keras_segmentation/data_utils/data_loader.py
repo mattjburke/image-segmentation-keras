@@ -103,7 +103,7 @@ def get_image_array(image_input, width, height, imgNorm="sub_mean",
     return img
 
 
-def get_segmentation_array(image_input, nClasses, width, height, no_reshape=False):
+def get_segmentation_array(image_input, nClasses, width, height, no_reshape=True):
     """ Load segmentation array from input """
 
     seg_labels = np.zeros((height, width, nClasses))
@@ -278,7 +278,8 @@ def image_segmentation_pairs_dataset(images_path, segs_path, gen_model, do_augme
         print("im_array_out shape = ", im_array_out.shape)
 
         if use_fake == 1:
-            seg_array = gen_model.predict([im_array_in])
+            seg_array = gen_model.predict([[im_array_in]])
+            seg_array = seg_array[0]
             print("seg_array fake1 shape = ", seg_array.shape)
             # seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
             # print("seg_array fake2 shape = ", seg_array.shape)
