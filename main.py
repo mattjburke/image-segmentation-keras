@@ -27,8 +27,8 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
     if train_gen_first:
         gen_checkpoints_path = get_path("gen_" + gen_model_name)
         train_gen(g_model=gen_segnet, checkpoints_path=gen_checkpoints_path, data_path=data_path)
+        print("Metrics at 0 are", eval_gen(gen_model, data_path=data_path))
 
-    print("Metrics at 0 are", eval_gen(gen_model, data_path=data_path))
     num_gen_layers = len(gen_model.get_weights())
     iteration = 1
     while True:
@@ -53,7 +53,7 @@ gen_segnet = segnet(20, input_height=416, input_width=608, encoder_level=3)  # n
 gen_segnet.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
 # gen_checkpoints_path = get_path("gen_segnet")
 # train_gen(gen_segnet, gen_checkpoints_path, data_path=data_path)
-gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-28-18:23:33.163780/- 9- 0.73.hdf5")
+gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
 gen_orig_weights = gen_segnet.get_weights()
 
 # Train my stacked input gan

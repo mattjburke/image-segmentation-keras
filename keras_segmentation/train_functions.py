@@ -35,7 +35,7 @@ def train_gen(g_model=None, checkpoints_path=None, load_g_model_path=None,
         validate=True,
         val_images=data_path + "images_prepped_val",
         val_annotations=data_path + "annotations_prepped_val",
-        val_batch_size=4,  # default 2
+        val_batch_size=25,  # default 2
         auto_resume_checkpoint=False,
         load_weights=load_g_model_path,  # uses model.load_weights(load_weights)
         steps_per_epoch=119,  # there are 1525 test images, 2975 train, and 500 val
@@ -99,7 +99,7 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None,
     d_model.fit(X_train, Y_train,
                 validation_data=(X_val, Y_val),
                 epochs=1000,
-                batch_size=25, steps_per_epoch=119, validation_steps=20,  # there are 2975 train, 500 val
+                batch_size=5, steps_per_epoch=595, validation_steps=100,  # there are 2975 train, 500 val
                 use_multiprocessing=False,  # Used for generator or keras.utils.Sequence input only
                 callbacks=[csv_logger, save_chckpts, early_stop])
 
@@ -131,10 +131,10 @@ def train_gan(checkpoints_path=None, gan_model=None, g_model=None,
     do_augment = False
     history_csv = checkpoints_path + "model_history_log.csv"
 
-    batch_size = 25
-    val_batch_size = 25
-    steps_per_epoch = 119
-    val_steps_per_epoch = 20
+    batch_size = 5
+    val_batch_size = 5
+    steps_per_epoch = 595
+    val_steps_per_epoch = 100
     gen_use_multiprocessing = True
 
     with open(checkpoints_path + "_config.json", "w") as f:
@@ -194,7 +194,7 @@ def eval_gen(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-segmentat
         input_height, input_width, output_height, output_width, do_augment=do_augment)
 
     # there are 1525 test images, 2975 train, and 500 val
-    return gen_model.evaluate_generator(test_data_gen, steps=61, use_multiprocessing=True, verbose=1)
+    return gen_model.evaluate_generator(test_data_gen, steps=61, use_multiprocessing=True, verbose=1), gen_model.metric_names
 
 
 # def alternate_training(gan_model, d_model):

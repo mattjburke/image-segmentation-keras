@@ -226,7 +226,7 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size,
             print("im_array_out shape = ", im_array_out.shape)
 
             if use_fake == 1:
-                seg_array = gen_model.predict(im_array_in)
+                seg_array = gen_model.predict([[im_array_in]])[0]
                 print("seg_array fake1 shape = ", seg_array.shape)
                 # seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
                 # print("seg_array fake2 shape = ", seg_array.shape)
