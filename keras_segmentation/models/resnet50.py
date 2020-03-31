@@ -173,8 +173,8 @@ def get_resnet50_encoder(input_height=224,  input_width=224, input_chan=3,
     x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')
     f5 = x
 
-    x = AveragePooling2D(
-        (7, 7), data_format=IMAGE_ORDERING, name='avg_pool')(x)
+    # x = AveragePooling2D(
+    #     (7, 7), data_format=IMAGE_ORDERING, name='avg_pool')(x)
     # f6 = x
 
     if pretrained == 'imagenet':

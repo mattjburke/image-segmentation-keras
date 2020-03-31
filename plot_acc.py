@@ -21,17 +21,26 @@ with open(FILEPATH,'r') as csvfile:
         val_accuracy.append(float(row['val_accuracy']))
         val_loss.append(float(row['val_loss']))
 
+plt.figure()
+
+plt.subplot(211)
+plt.title('Model Accuracy')
 plt.plot(epoch, accuracy, marker='o')
 plt.plot(epoch, val_accuracy, marker='o')
-plt.plot(epoch, loss, marker='o')
-plt.plot(epoch, val_loss, marker='o')
-# plt.axis(0, 15, 0, 4)
-plt.title('Model accuracy')
 plt.ylabel('Accuracy')
 plt.xlabel('Epoch')
-plt.legend(['Train', 'Validation', 'Loss', 'Val Loss'], loc='upper left')
+plt.legend(['Train Accuracy', 'Validation Accuracy'], loc='lower right')
+
+plt.subplot(212)
+plt.title('Model Loss')
+plt.plot(epoch, loss, marker='o')
+plt.plot(epoch, val_loss, marker='o')
+plt.ylabel('Loss')
+plt.xlabel('Epoch')
+plt.legend(['Train Loss', 'Validation Loss'], loc='upper right')
+
 plt.show()
 
-# eval output is [test_loss, test_accuracy]? so both can be compared to graph
+# eval output is [test_loss, test_accuracy]? so both can be compared to graphs
 # example: Metrics at 0 are [4.6877665519714355, 0.058624133467674255] (from job.185169.out)
 

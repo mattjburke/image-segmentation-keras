@@ -83,8 +83,11 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None,
             "g_output_width": g_model.output_width
         }, f)
 
+    # this step takes too much memory??
+    print("creating datasets X_train, Y_train")
     # create and preprocess training dataset all at once instead of using training generators
     X_train, Y_train = image_segmentation_pairs_dataset(train_images, train_annotations, g_model, do_augment=do_augment)
+    print("creating datasets X_val, Y_val")
     X_val, Y_val = image_segmentation_pairs_dataset(val_images, val_annotations, g_model, do_augment=do_augment)
 
     # create 3 callbacks to log
@@ -96,6 +99,7 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None,
     early_stop = keras.callbacks.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=1,
                                                          mode='auto', baseline=None, restore_best_weights=False)
 
+    print("fitting discriminator")
     d_model.fit(X_train, Y_train,
                 validation_data=(X_val, Y_val),
                 epochs=1000,
@@ -147,6 +151,7 @@ def train_gan(checkpoints_path=None, gan_model=None, g_model=None,
             "gen_output_width": g_model.output_width
         }, f)
 
+    print("creating gan generators")
     # create data generators to feed into gan: images and FAKE label
     train_gan_gen = image_flabels_generator(train_images, train_annotations, batch_size,
                                             input_height, input_width, do_augment=do_augment)
@@ -163,6 +168,7 @@ def train_gan(checkpoints_path=None, gan_model=None, g_model=None,
     early_stop = keras.callbacks.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=1,
                                                          mode='auto', baseline=None, restore_best_weights=False)
 
+    print("training gan")
     # train GAN
     gan_model.fit_generator(train_gan_gen,
                             steps_per_epoch=steps_per_epoch,
@@ -185,7 +191,7 @@ def eval_gen(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-segmentat
     input_width = gen_model.input_width
     output_height = gen_model.output_height
     output_width = gen_model.output_width
-    batch_size = 25  # what size can be handled in memory? bigger = faster
+    batch_size = 5  # what size can be handled in memory? bigger = faster
     do_augment = False
     # history_csv = checkpoints_path + "model_history_log.csv"
 
@@ -193,8 +199,9 @@ def eval_gen(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-segmentat
         test_images, test_annotations, batch_size, n_classes,
         input_height, input_width, output_height, output_width, do_augment=do_augment)
 
+    # print(gen_model.metrics_names)
     # there are 1525 test images, 2975 train, and 500 val
-    return gen_model.evaluate_generator(test_data_gen, steps=61, use_multiprocessing=True, verbose=1), gen_model.metric_names
+    return gen_model.evaluate_generator(test_data_gen, steps=305, use_multiprocessing=True, verbose=1)
 
 
 # def alternate_training(gan_model, d_model):
