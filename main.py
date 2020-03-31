@@ -17,9 +17,9 @@ checkpoints_path = pronto_checkpoints_path
 
 def get_path(name_string):
     time_begin = str(datetime.now()).replace(' ', '-')
-    print("beginning" + name_string + "training at", time_begin)
+    print("beginning " + name_string + " training at", time_begin)
     save_checkpoints_path = checkpoints_path + name_string + "-" + time_begin + "/"
-    print(name_string + "checkpoints will be saved at" + save_checkpoints_path)
+    print(name_string + " checkpoints will be saved at " + save_checkpoints_path)
     return save_checkpoints_path
 
 

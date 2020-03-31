@@ -208,32 +208,32 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size,
         Y = []
         i = 0
         for pair in range(batch_size):
-            print("pair =", pair)
+            # print("pair =", pair)
             im, seg = next(zipped)
             i += 1
             use_fake = i % 2  # use Math.rand() instead?
 
             im = cv2.imread(im, 1)
             seg = cv2.imread(seg, 1)
-            print("im shape = ", im.shape)
-            print("seg shape = ", seg.shape)
+            # print("im shape = ", im.shape)
+            # print("seg shape = ", seg.shape)
 
             if do_augment:
                 im, seg[:, :, 0] = augment_seg(im, seg[:, :, 0])
 
             im_array_in = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
             im_array_out = get_image_array(im, output_width, output_height, ordering=IMAGE_ORDERING)
-            print("im_array_out shape = ", im_array_out.shape)
+            # print("im_array_out shape = ", im_array_out.shape)
 
             if use_fake == 1:
                 seg_array = gen_model.predict([[im_array_in]])[0]
-                print("seg_array fake1 shape = ", seg_array.shape)
+                # print("seg_array fake1 shape = ", seg_array.shape)
                 # seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
                 # print("seg_array fake2 shape = ", seg_array.shape)
                 Y.append(FAKE)
             else:
                 seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
-                print("seg_array real shape = ", seg_array.shape)
+                # print("seg_array real shape = ", seg_array.shape)
                 Y.append(REAL)
 
             stacked = np.dstack((im_array_out, seg_array))  # stacks along 3rd axis
@@ -267,26 +267,26 @@ def image_segmentation_pairs_dataset(images_path, segs_path, gen_model, do_augme
 
         im = cv2.imread(im, 1)
         seg = cv2.imread(seg, 1)
-        print("im shape = ", im.shape)
-        print("seg shape = ", seg.shape)
+        # print("im shape = ", im.shape)
+        # print("seg shape = ", seg.shape)
 
         if do_augment:
             im, seg[:, :, 0] = augment_seg(im, seg[:, :, 0])
 
         im_array_in = get_image_array(im, g_input_width, g_input_height, ordering=IMAGE_ORDERING)
         im_array_out = get_image_array(im, g_output_width, g_output_height, ordering=IMAGE_ORDERING)
-        print("im_array_out shape = ", im_array_out.shape)
+        # print("im_array_out shape = ", im_array_out.shape)
 
         if use_fake == 1:
             seg_array = gen_model.predict([[im_array_in]])
             seg_array = seg_array[0]
-            print("seg_array fake1 shape = ", seg_array.shape)
+            # print("seg_array fake1 shape = ", seg_array.shape)
             # seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
             # print("seg_array fake2 shape = ", seg_array.shape)
             Y.append(FAKE)
         else:
             seg_array = get_segmentation_array(seg, n_classes, g_output_width, g_output_height, no_reshape=True)
-            print("seg_array real shape = ", seg_array.shape)
+            # print("seg_array real shape = ", seg_array.shape)
             Y.append(REAL)
 
         stacked = np.dstack((im_array_out, seg_array))  # stacks along 3rd axis
