@@ -5,7 +5,8 @@ import os
 import json
 import keras
 from keras_segmentation.models.gan_disc import make_gan
-from keras_segmentation.data_utils.data_loader import image_flabels_generator, image_segmentation_pairs_dataset, image_segmentation_generator
+from keras_segmentation.data_utils.data_loader import image_flabels_generator, image_segmentation_pairs_dataset, \
+    image_segmentation_pairs_generator, image_segmentation_generator
 import tensorflow as tf
 # from keras.models import load_model, load_weights
 from keras_segmentation.models.model_utils import add_input_dims
@@ -73,6 +74,12 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None,
     do_augment = False
     history_csv = checkpoints_path + "model_history_log.csv"
 
+    batch_size = 5
+    val_batch_size = 5
+    steps_per_epoch = 595
+    val_steps_per_epoch = 100
+    gen_use_multiprocessing = True  # messes up generator?
+
     with open(checkpoints_path + "_config.json", "w") as f:
         json.dump({
             "model_class": "discriminator",  # basic keras models do not have model_name
@@ -84,11 +91,17 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None,
         }, f)
 
     # this step takes too much memory??
-    print("creating datasets X_train, Y_train")
-    # create and preprocess training dataset all at once instead of using training generators
-    X_train, Y_train = image_segmentation_pairs_dataset(train_images, train_annotations, g_model, do_augment=do_augment)
-    print("creating datasets X_val, Y_val")
-    X_val, Y_val = image_segmentation_pairs_dataset(val_images, val_annotations, g_model, do_augment=do_augment)
+    # print("creating datasets X_train, Y_train")
+    # # create and preprocess training dataset all at once instead of using training generators
+    # X_train, Y_train = image_segmentation_pairs_dataset(train_images, train_annotations, g_model, do_augment=do_augment)
+    # print("creating datasets X_val, Y_val")
+    # X_val, Y_val = image_segmentation_pairs_dataset(val_images, val_annotations, g_model, do_augment=do_augment)
+
+    train_d_gen = image_segmentation_pairs_generator(train_images, train_annotations, batch_size,
+                                                     g_model, do_augment=do_augment)
+
+    val_d_gen = image_segmentation_pairs_generator(val_images, val_annotations, val_batch_size,
+                                                   g_model, do_augment=do_augment)
 
     # create 3 callbacks to log
     checkpoints_path_save = checkpoints_path + "e{epoch:02d}vl{val_loss:.2f}.hdf5"
@@ -100,12 +113,20 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None,
                                                          mode='auto', baseline=None, restore_best_weights=False)
 
     print("fitting discriminator")
-    d_model.fit(X_train, Y_train,
-                validation_data=(X_val, Y_val),
-                epochs=1000,
-                batch_size=5, steps_per_epoch=595, validation_steps=100,  # there are 2975 train, 500 val
-                use_multiprocessing=False,  # Used for generator or keras.utils.Sequence input only
-                callbacks=[csv_logger, save_chckpts, early_stop])
+    # d_model.fit(X_train, Y_train,
+    #             validation_data=(X_val, Y_val),
+    #             epochs=1000,
+    #             batch_size=5, steps_per_epoch=595, validation_steps=100,  # there are 2975 train, 500 val
+    #             use_multiprocessing=False,  # Used for generator or keras.utils.Sequence input only
+    #             callbacks=[csv_logger, save_chckpts, early_stop])
+
+    d_model.fit_generator(train_d_gen,
+                          steps_per_epoch=steps_per_epoch,
+                          validation_data=val_d_gen,
+                          validation_steps=val_steps_per_epoch,
+                          epochs=1000,
+                          use_multiprocessing=gen_use_multiprocessing,
+                          callbacks=[csv_logger, save_chckpts, early_stop])
 
     print("finished discriminator training at", datetime.now())
 
@@ -113,7 +134,6 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None,
 # g_model is passed to use input_height, output_height, etc to create data loaders and save to log
 def train_gan(checkpoints_path=None, gan_model=None, g_model=None,
               data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
-
     if (checkpoints_path is None) or (gan_model is None) or (g_model is None):
         print("train_gan() needs a gan_model, g_model, and checkpoints_path")
     assert checkpoints_path is not None
@@ -182,7 +202,6 @@ def train_gan(checkpoints_path=None, gan_model=None, g_model=None,
 
 
 def eval_gen(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
-
     test_images = data_path + "images_prepped_test/"
     test_annotations = data_path + "annotations_prepped_test/"
 
@@ -203,8 +222,7 @@ def eval_gen(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-segmentat
     # there are 1525 test images, 2975 train, and 500 val
     return gen_model.evaluate_generator(test_data_gen, steps=305, use_multiprocessing=True, verbose=1)
 
-
-# def alternate_training(gan_model, d_model):
+    # def alternate_training(gan_model, d_model):
     # train generator
     # create dataset for discriminator
     # train discriminator
@@ -218,10 +236,8 @@ def eval_gen(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-segmentat
     # how to extract certain layers to make new model (make gen from gan)
     # need to label layers?
 
-
-
-# from https://github.com/keras-team/keras/blob/master/keras/engine/network.py
-# class Network(Layer):
+    # from https://github.com/keras-team/keras/blob/master/keras/engine/network.py
+    # class Network(Layer):
     """A Network is a directed acyclic graph of layers.
     It is the topological form of a "model". A Model
     is simply a Network with added training routines.
@@ -267,4 +283,3 @@ def eval_gen(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-segmentat
         TypeError: if input tensors are not Keras tensors
             (tensors returned by `Input`).
     """
-
