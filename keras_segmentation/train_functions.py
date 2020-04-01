@@ -121,6 +121,7 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None,
     #             callbacks=[csv_logger, save_chckpts, early_stop])
 
     d_model.fit_generator(train_d_gen,
+                          workers=0,
                           steps_per_epoch=steps_per_epoch,
                           validation_data=val_d_gen,
                           validation_steps=val_steps_per_epoch,
