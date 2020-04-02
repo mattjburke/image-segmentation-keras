@@ -162,11 +162,15 @@ def train_gan(checkpoints_path=None, gan_model=None, g_model=None, epochs=2, num
         print(layer.name, layer.trainable)
 
     i = 0
+    print("num_gen_layers = ", num_gen_layers)
     for layer in gan_model.layers:
         if i < num_gen_layers:
             layer.trainable = True
         else:
-            layer.trainable = False
+            for sublayer in layer.layers:
+                sublayer.trainable = False
+            # layer.trainable = False
+        print(i)
         i += 1
 
     print("------- after setting trainable ----------------------------")
