@@ -1,7 +1,12 @@
 import matplotlib.pyplot as plt
 import csv
 
-FILEPATH = '/Users/MatthewBurke/PycharmProjects/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/model_history_log.csv'
+# FILEPATH = '/Users/MatthewBurke/PycharmProjects/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/model_history_log.csv'
+
+# FILEPATH = '/Users/MatthewBurke/PycharmProjects/image-segmentation-keras/checkpoints/run-04-01/disc_segnet-2020-04-01-10:12:20.789132/model_history_log.csv'
+FILEPATH = '/Users/MatthewBurke/PycharmProjects/image-segmentation-keras/checkpoints/run-04-01/disc_segnet-2020-04-01-13:05:39.319831/model_history_log.csv'
+# FILEPATH = '/Users/MatthewBurke/PycharmProjects/image-segmentation-keras/checkpoints/run-04-01/gan_segnet-2020-04-01-11:29:06.463303/model_history_log.csv'
+# FILEPATH = '/Users/MatthewBurke/PycharmProjects/image-segmentation-keras/checkpoints/run-04-01/gan_segnet-2020-04-01-14:49:29.158507/model_history_log.csv'
 
 history_log_file = open(FILEPATH, 'r')
 history = csv.reader(history_log_file)

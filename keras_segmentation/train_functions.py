@@ -126,7 +126,7 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None, epochs=2,
                               callbacks=[csv_logger, save_chckpts, early_stop])
     else:
 
-        print("training discriminator for " + epochs + " epochs")
+        print("training discriminator for epochs =", epochs)
 
         d_model.fit_generator(train_d_gen,
                               workers=0,
@@ -210,7 +210,7 @@ def train_gan(checkpoints_path=None, gan_model=None, g_model=None, epochs=2,
                                 callbacks=[csv_logger, save_chckpts, early_stop])
 
     else:
-        print("training gan for " + epochs + " epochs")
+        print("training gan for epochs =", epochs)
         # train GAN
         gan_model.fit_generator(train_gan_gen,
                                 steps_per_epoch=steps_per_epoch,

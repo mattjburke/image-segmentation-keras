@@ -27,18 +27,18 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
     if train_gen_first:
         gen_checkpoints_path = get_path("gen_" + gen_model_name)
         train_gen(g_model=gen_segnet, checkpoints_path=gen_checkpoints_path, data_path=data_path)
-        print("Metrics at 0 are", eval_gen(gen_model, data_path=data_path))
 
+    print("Metrics at 0 are", eval_gen(gen_model, data_path=data_path))
     num_gen_layers = len(gen_model.get_weights())
     iteration = 1
     while iteration <= 5:
         print("beginning train_disc")
         disc_checkpoints_path = get_path("disc_" + gen_model_name)
-        train_disc(g_model=gen_model, d_model=d_model, checkpoints_path=disc_checkpoints_path, epochs=2, data_path=data_path)
+        train_disc(g_model=gen_model, d_model=d_model, checkpoints_path=disc_checkpoints_path, epochs=1, data_path=data_path)
 
         print("beginning train_gan")
         gan_checkpoints_path = get_path("gan_" + gen_model_name)
-        train_gan(gan_model=gan_model, g_model=gen_model, checkpoints_path=gan_checkpoints_path, epochs=2, data_path=data_path)
+        train_gan(gan_model=gan_model, g_model=gen_model, checkpoints_path=gan_checkpoints_path, epochs=1, data_path=data_path)
 
         print("transferring weights")
         gan_weights = gan_model.get_weights()
@@ -76,7 +76,7 @@ train_alternately(gen_model=gen_segnet, d_model=disc_segnet_stacked, gan_model=g
 gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
 disc_segnet_reg = gan_disc.discriminator_reg(gen_segnet)
 disc_segnet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
-gan_segnet_reg = gan_disc.make_gan_reg(gen_segnet, disc_segnet_stacked)
+gan_segnet_reg = gan_disc.make_gan_reg(gen_segnet, disc_segnet_reg)
 gan_segnet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
 train_alternately(gen_model=gen_segnet, d_model=disc_segnet_reg, gan_model=gan_segnet_reg,
                   gen_model_name="segnet", train_gen_first=False)
