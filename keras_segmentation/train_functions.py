@@ -56,7 +56,7 @@ def train_gen(g_model=None, checkpoints_path=None, load_g_model_path=None,
 
 
 # g_model is passed to create training dataset
-def train_disc(g_model=None, d_model=None, checkpoints_path=None,
+def train_disc(g_model=None, d_model=None, checkpoints_path=None, epochs=2,
                data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
     if (checkpoints_path is None) or (d_model is None) or (g_model is None):
         print("train_disc() needs a d_model, g_model, and checkpoints_path")
@@ -109,31 +109,39 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None,
     save_chckpts = keras.callbacks.callbacks.ModelCheckpoint(checkpoints_path_save, monitor='val_loss',
                                                              verbose=1, save_best_only=False,
                                                              save_weights_only=True, mode='auto', period=1)
-    early_stop = keras.callbacks.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=1,
-                                                         mode='auto', baseline=None, restore_best_weights=False)
 
-    print("fitting discriminator")
-    # d_model.fit(X_train, Y_train,
-    #             validation_data=(X_val, Y_val),
-    #             epochs=1000,
-    #             batch_size=5, steps_per_epoch=595, validation_steps=100,  # there are 2975 train, 500 val
-    #             use_multiprocessing=False,  # Used for generator or keras.utils.Sequence input only
-    #             callbacks=[csv_logger, save_chckpts, early_stop])
+    if epochs == "early_stop":
+        early_stop = keras.callbacks.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=1,
+                                                             mode='auto', baseline=None, restore_best_weights=False)
 
-    d_model.fit_generator(train_d_gen,
-                          workers=0,
-                          steps_per_epoch=steps_per_epoch,
-                          validation_data=val_d_gen,
-                          validation_steps=val_steps_per_epoch,
-                          epochs=1000,
-                          use_multiprocessing=gen_use_multiprocessing,
-                          callbacks=[csv_logger, save_chckpts, early_stop])
+        print("training discriminator with early stopping")
+
+        d_model.fit_generator(train_d_gen,
+                              workers=0,
+                              steps_per_epoch=steps_per_epoch,
+                              validation_data=val_d_gen,
+                              validation_steps=val_steps_per_epoch,
+                              epochs=1000,
+                              use_multiprocessing=gen_use_multiprocessing,
+                              callbacks=[csv_logger, save_chckpts, early_stop])
+    else:
+
+        print("training discriminator for " + epochs + " epochs")
+
+        d_model.fit_generator(train_d_gen,
+                              workers=0,
+                              steps_per_epoch=steps_per_epoch,
+                              validation_data=val_d_gen,
+                              validation_steps=val_steps_per_epoch,
+                              epochs=epochs,
+                              use_multiprocessing=gen_use_multiprocessing,
+                              callbacks=[csv_logger, save_chckpts])
 
     print("finished discriminator training at", datetime.now())
 
 
 # g_model is passed to use input_height, output_height, etc to create data loaders and save to log
-def train_gan(checkpoints_path=None, gan_model=None, g_model=None,
+def train_gan(checkpoints_path=None, gan_model=None, g_model=None, epochs=2,
               data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
     if (checkpoints_path is None) or (gan_model is None) or (g_model is None):
         print("train_gan() needs a gan_model, g_model, and checkpoints_path")
@@ -186,18 +194,31 @@ def train_gan(checkpoints_path=None, gan_model=None, g_model=None,
     save_chckpts = keras.callbacks.callbacks.ModelCheckpoint(checkpoints_path_save, monitor='val_loss',
                                                              verbose=1, save_best_only=False,
                                                              save_weights_only=True, mode='auto', period=1)
-    early_stop = keras.callbacks.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=1,
-                                                         mode='auto', baseline=None, restore_best_weights=False)
 
-    print("training gan")
-    # train GAN
-    gan_model.fit_generator(train_gan_gen,
-                            steps_per_epoch=steps_per_epoch,
-                            validation_data=val_gan_gen,
-                            validation_steps=val_steps_per_epoch,
-                            epochs=1000,
-                            use_multiprocessing=gen_use_multiprocessing,
-                            callbacks=[csv_logger, save_chckpts, early_stop])
+    if epochs == "early_stop":
+        early_stop = keras.callbacks.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=1,
+                                                             mode='auto', baseline=None, restore_best_weights=False)
+
+        print("training gan with early stopping")
+        # train GAN
+        gan_model.fit_generator(train_gan_gen,
+                                steps_per_epoch=steps_per_epoch,
+                                validation_data=val_gan_gen,
+                                validation_steps=val_steps_per_epoch,
+                                epochs=1000,
+                                use_multiprocessing=gen_use_multiprocessing,
+                                callbacks=[csv_logger, save_chckpts, early_stop])
+
+    else:
+        print("training gan for " + epochs + " epochs")
+        # train GAN
+        gan_model.fit_generator(train_gan_gen,
+                                steps_per_epoch=steps_per_epoch,
+                                validation_data=val_gan_gen,
+                                validation_steps=val_steps_per_epoch,
+                                epochs=epochs,
+                                use_multiprocessing=gen_use_multiprocessing,
+                                callbacks=[csv_logger, save_chckpts])
 
     print("finished gan training at", datetime.now())
 

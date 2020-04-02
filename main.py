@@ -31,14 +31,14 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
 
     num_gen_layers = len(gen_model.get_weights())
     iteration = 1
-    while iteration <= 2:
+    while iteration <= 5:
         print("beginning train_disc")
         disc_checkpoints_path = get_path("disc_" + gen_model_name)
-        train_disc(g_model=gen_model, d_model=d_model, checkpoints_path=disc_checkpoints_path, data_path=data_path)
+        train_disc(g_model=gen_model, d_model=d_model, checkpoints_path=disc_checkpoints_path, epochs=2, data_path=data_path)
 
         print("beginning train_gan")
         gan_checkpoints_path = get_path("gan_" + gen_model_name)
-        train_gan(gan_model=gan_model, g_model=gen_model, checkpoints_path=gan_checkpoints_path, data_path=data_path)
+        train_gan(gan_model=gan_model, g_model=gen_model, checkpoints_path=gan_checkpoints_path, epochs=2, data_path=data_path)
 
         print("transferring weights")
         gan_weights = gan_model.get_weights()
