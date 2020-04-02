@@ -2,6 +2,7 @@ from keras_segmentation.models.segnet import segnet
 import keras_segmentation.models.gan_disc as gan_disc
 from keras_segmentation.train_functions import train_gen, train_disc, train_gan, eval_gen
 from datetime import datetime
+import keras
 print("finished imports")
 
 pronto_data_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"
@@ -21,6 +22,23 @@ def get_path(name_string):
     save_checkpoints_path = checkpoints_path + name_string + "-" + time_begin + "/"
     print(name_string + " checkpoints will be saved at " + save_checkpoints_path)
     return save_checkpoints_path
+
+
+# could be useful?
+def flatten_model(model_nested):
+    def get_layers(layers):
+        layers_flat = []
+        for layer in layers:
+            try:
+                layers_flat.extend(get_layers(layer.layers))
+            except AttributeError:
+                layers_flat.append(layer)
+        return layers_flat
+
+    model_flat = keras.models.Sequential(
+        get_layers(model_nested.layers)
+    )
+    return model_flat
 
 
 def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_name="unknown", train_gen_first=False):
