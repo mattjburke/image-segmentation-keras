@@ -43,13 +43,17 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
                   epochs=1, num_gen_layers=num_gen_layers, data_path=data_path)
 
         print("transferring weights")
-        gan_weights = gan_model.get_weights()
-        gan_gen_weights = []
-        for layer in range(num_gen_layers):
-            gan_gen_weights.append(gan_weights[layer])
-        gen_model.set_weights(gan_gen_weights)
-        del gan_weights
-        del gan_gen_weights
+        # gan_weights = gan_model.get_weights()
+        # gan_gen_weights = []
+        # for layer in range(num_gen_layers):
+        #     gan_gen_weights.append(gan_weights[layer])
+        # gen_model.set_weights(gan_gen_weights)
+        # del gan_weights
+        # del gan_gen_weights
+        for layer in gan_model:
+            if layer.name == 'generator':
+                gen_model.set_weights(layer.get_weights())
+        gen_model.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
         print("Metrics at", iteration, "are", eval_gen(gen_model, data_path=data_path))
         iteration += 1
         # implement stopping condition

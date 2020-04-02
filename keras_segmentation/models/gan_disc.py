@@ -44,13 +44,15 @@ def make_gan(g_model, d_model):
     d_model.trainable = False
     orig_img = g_model.input
     # shaped_o = Reshape([208, 304, 20])(g_model.output)  # should do nothing if same shape
-    # This resizes in the same way as GT dataset (in dataloader)
+    # This resizes in the same way as GT dataset (in dataloader)?
     out_height = g_model.output_height  # 208 for segnet
     out_width = g_model.output_width  # 304 for segnet
-    im_array_out = Lambda(lambda x: tf.compat.v1.image.resize(x, [out_height, out_width], align_corners=True))(orig_img)
-    stacked = concatenate([im_array_out, g_model.output])
-    gan_output = d_model(stacked)
-    model = keras.Model(orig_img, gan_output)
+    im_array_out = Lambda(lambda x: tf.compat.v1.image.resize(x, [out_height, out_width], align_corners=True), name='resize_input_img')(orig_img)
+    gen_output = Lambda(lambda x: g_model(x), name='generator')(orig_img)
+    stacked = concatenate([im_array_out, gen_output])
+    discrim_output = Lambda(lambda x: d_model(x), name='discriminator')(stacked)
+    # gan_output = discrim_layer()(stacked)      # d_model(stacked)
+    model = keras.Model(orig_img, discrim_output)
     model = add_input_dims(model)  # use this or set to match g_model?
     return model
 
@@ -63,7 +65,8 @@ def make_gan_reg(g_model, d_model):
     # This resizes in the same way as GT dataset (in dataloader)
     # im_array_out = Lambda(lambda x: tf.compat.v1.image.resize(x, [208, 304], align_corners=True))(orig_img)
     # stacked = concatenate([im_array_out, shaped_o])
-    gan_output = d_model(g_model.output)
+    # gan_output = d_model(g_model.output)
+    gan_output = d_model(g_model(orig_img))
     model = keras.Model(orig_img, gan_output)
     model = add_input_dims(model)  # use this or set to match g_model?
     return model

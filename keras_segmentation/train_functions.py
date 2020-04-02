@@ -66,7 +66,9 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None, epochs=2,
 
     os.mkdir(checkpoints_path)
 
+    # need to compile again to set as trainable
     d_model.trainable = True
+    d_model.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
     for layer in d_model.layers:
         print(layer.name, layer.trainable)
 
@@ -161,17 +163,24 @@ def train_gan(checkpoints_path=None, gan_model=None, g_model=None, epochs=2, num
     for layer in gan_model.layers:
         print(layer.name, layer.trainable)
 
-    i = 0
-    print("num_gen_layers = ", num_gen_layers)
+    # i = 0
+    # # print("num_gen_layers = ", num_gen_layers)
+    # for layer in gan_model.layers:
+    #     if i < 4:  # the 5th layer is the discriminator
+    #         layer.trainable = True
+    #     else:
+    #         # for sublayer in layer.layers:
+    #         #     sublayer.trainable = False
+    #         layer.trainable = False
+    #     print(i)
+    #     i += 1
+
     for layer in gan_model.layers:
-        if i < num_gen_layers:
-            layer.trainable = True
-        else:
-            for sublayer in layer.layers:
-                sublayer.trainable = False
-            # layer.trainable = False
-        print(i)
-        i += 1
+        if layer.name == 'discriminator':
+            layer.trainable = False
+
+    # need to compile after changing trainable
+    gan_model.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
 
     print("------- after setting trainable ----------------------------")
     for layer in gan_model.layers:
