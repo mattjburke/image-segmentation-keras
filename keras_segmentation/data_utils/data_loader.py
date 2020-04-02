@@ -382,7 +382,10 @@ def image_flabels_generator(images_path, segs_path, batch_size, input_height, in
 
             X.append(get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING))
             #Y.append(get_segmentation_array(seg, n_classes, output_width, output_height))
-            Y.append(FAKE)  # 0 means fake
+            # Y.append(FAKE)  # 0 means fake
+            Y.append(REAL)  # We want the generator to be updated so that the discriminator thinks the generated images are REAL
+            # labelling generated images as REAL for the gan phase of training is a way to do this.
+            # The desired function of the gan is to produce images that are then classified as real, even though they are not
 
         yield np.array(X), np.array(Y)
 
