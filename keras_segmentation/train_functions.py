@@ -66,6 +66,11 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None, epochs=2,
 
     os.mkdir(checkpoints_path)
 
+    d_model.trainable = True
+    for layer in d_model.layers:
+        print(layer.name, layer.trainable)
+
+
     train_images = data_path + "images_prepped_train/"
     train_annotations = data_path + "annotations_prepped_train/"
     val_images = data_path + "images_prepped_val"
@@ -141,7 +146,7 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None, epochs=2,
 
 
 # g_model is passed to use input_height, output_height, etc to create data loaders and save to log
-def train_gan(checkpoints_path=None, gan_model=None, g_model=None, epochs=2,
+def train_gan(checkpoints_path=None, gan_model=None, g_model=None, epochs=2, num_gen_layers=5,
               data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
     if (checkpoints_path is None) or (gan_model is None) or (g_model is None):
         print("train_gan() needs a gan_model, g_model, and checkpoints_path")
@@ -150,6 +155,24 @@ def train_gan(checkpoints_path=None, gan_model=None, g_model=None, epochs=2,
     assert g_model is not None
 
     os.mkdir(checkpoints_path)
+
+    # d_model.trainable = False
+    print("------ before setting trainable ----------------------------")
+    for layer in gan_model.layers:
+        print(layer.name, layer.trainable)
+
+    i = 0
+    for layer in gan_model.layers:
+        if i < num_gen_layers:
+            layer.trainable = True
+        else:
+            layer.trainable = False
+        i += 1
+
+    print("------- after setting trainable ----------------------------")
+    for layer in gan_model.layers:
+        print(layer.name, layer.trainable)
+
 
     input_height = g_model.input_height
     input_width = g_model.input_width
