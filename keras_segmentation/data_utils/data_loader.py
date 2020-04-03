@@ -6,6 +6,7 @@ import six
 import numpy as np
 import cv2
 import keras
+import tensorflow as tf
 
 try:
     from tqdm import tqdm
@@ -225,7 +226,11 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size, gen_m
                 im, seg[:, :, 0] = augment_seg(im, seg[:, :, 0])
 
             im_array_in = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
-            im_array_out = get_image_array(im, output_width, output_height, ordering=IMAGE_ORDERING)
+            # im_array_out = get_image_array(im, output_width, output_height, ordering=IMAGE_ORDERING)
+            # make sure it is resized the same way gan resizes it
+            im_tensor_in = tf.convert_to_tensor(im_array_in)
+            im_tensor_out = tf.compat.v1.image.resize(im_tensor_in, [output_height, output_width], align_corners=True)
+            im_array_out = np.array(im_tensor_out)
             # print("im_array_out shape = ", im_array_out.shape)
 
             if use_fake == 1:
