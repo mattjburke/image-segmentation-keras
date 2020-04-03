@@ -41,9 +41,9 @@ def flatten_model(model_nested):
     return model_flat
 
 
-def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_name="unknown", train_gen_first=False):
+def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_name="unknown", reg_or_stacked="stacked",train_gen_first=False):
     if train_gen_first:
-        gen_checkpoints_path = get_path("gen_" + gen_model_name)
+        gen_checkpoints_path = get_path("gen_" + reg_or_stacked + "_" + gen_model_name)
         train_gen(g_model=gen_segnet, checkpoints_path=gen_checkpoints_path, data_path=data_path)
 
     print("Metrics at 0 are", eval_gen(gen_model, data_path=data_path))
@@ -51,12 +51,12 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
     iteration = 1
     while iteration <= 5:
         print("beginning train_disc")
-        disc_checkpoints_path = get_path("disc_" + gen_model_name)
-        train_disc(g_model=gen_model, d_model=d_model, checkpoints_path=disc_checkpoints_path,
+        disc_checkpoints_path = get_path("disc_" + reg_or_stacked + "_" + gen_model_name)
+        train_disc(g_model=gen_model, d_model=d_model, reg_or_stacked=reg_or_stacked, checkpoints_path=disc_checkpoints_path,
                    epochs=1, data_path=data_path)
 
         print("beginning train_gan")
-        gan_checkpoints_path = get_path("gan_" + gen_model_name)
+        gan_checkpoints_path = get_path("gan_" + reg_or_stacked + "_" + gen_model_name)
         train_gan(gan_model=gan_model, g_model=gen_model, checkpoints_path=gan_checkpoints_path,
                   epochs=1, num_gen_layers=num_gen_layers, data_path=data_path)
 
@@ -103,7 +103,7 @@ disc_segnet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metric
 gan_segnet_reg = gan_disc.make_gan_reg(gen_segnet, disc_segnet_reg)
 gan_segnet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
 train_alternately(gen_model=gen_segnet, d_model=disc_segnet_reg, gan_model=gan_segnet_reg,
-                  gen_model_name="segnet", train_gen_first=False)
+                  gen_model_name="segnet", reg_or_stacked="reg", train_gen_first=False)
 
 
 

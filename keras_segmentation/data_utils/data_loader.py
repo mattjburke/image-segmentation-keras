@@ -194,7 +194,7 @@ def image_segmentation_generator(images_path, segs_path, batch_size,
         yield np.array(X), np.array(Y)
 
 
-def image_segmentation_pairs_generator(images_path, segs_path, batch_size, gen_model, do_augment=False):
+def image_segmentation_pairs_generator(images_path, segs_path, batch_size, gen_model, reg_or_stacked="stacked", do_augment=False):
 
     n_classes = gen_model.n_classes
     input_height = gen_model.input_height
@@ -228,9 +228,7 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size, gen_m
             im_array_in = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
             # im_array_out = get_image_array(im, output_width, output_height, ordering=IMAGE_ORDERING)
             # make sure it is resized the same way gan resizes it
-            im_tensor_in = tf.convert_to_tensor(im_array_in)
-            im_tensor_out = tf.compat.v1.image.resize(im_tensor_in, [output_height, output_width], align_corners=True)
-            im_array_out = np.array(im_tensor_out)
+
             # print("im_array_out shape = ", im_array_out.shape)
 
             if use_fake == 1:
@@ -244,8 +242,14 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size, gen_m
                 # print("seg_array real shape = ", seg_array.shape)
                 Y.append(REAL)
 
-            stacked = np.dstack((im_array_out, seg_array))  # stacks along 3rd axis
-            X.append(stacked)
+            if reg_or_stacked == "stacked":
+                im_tensor_in = tf.convert_to_tensor(im_array_in)
+                im_tensor_out = tf.compat.v1.image.resize(im_tensor_in, [output_height, output_width], align_corners=True)
+                im_array_out = np.array(im_tensor_out)
+                stacked = np.dstack((im_array_out, seg_array))  # stacks along 3rd axis
+                X.append(stacked)
+            else:
+                X.append(seg_array)
 
         yield np.array(X), np.array(Y)
 

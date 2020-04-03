@@ -56,7 +56,7 @@ def train_gen(g_model=None, checkpoints_path=None, load_g_model_path=None,
 
 
 # g_model is passed to create training dataset
-def train_disc(g_model=None, d_model=None, checkpoints_path=None, epochs=2,
+def train_disc(g_model=None, d_model=None, checkpoints_path=None, epochs=2, reg_or_stacked="stacked",
                data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
     if (checkpoints_path is None) or (d_model is None) or (g_model is None):
         print("train_disc() needs a d_model, g_model, and checkpoints_path")
@@ -105,10 +105,10 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None, epochs=2,
     # X_val, Y_val = image_segmentation_pairs_dataset(val_images, val_annotations, g_model, do_augment=do_augment)
 
     train_d_gen = image_segmentation_pairs_generator(train_images, train_annotations, batch_size,
-                                                     g_model, do_augment=do_augment)
+                                                     g_model, reg_or_stacked=reg_or_stacked, do_augment=do_augment)
 
     val_d_gen = image_segmentation_pairs_generator(val_images, val_annotations, val_batch_size,
-                                                   g_model, do_augment=do_augment)
+                                                   g_model, reg_or_stacked=reg_or_stacked, do_augment=do_augment)
 
     # create 3 callbacks to log
     checkpoints_path_save = checkpoints_path + "e{epoch:02d}vl{val_loss:.2f}.hdf5"
