@@ -49,6 +49,7 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
         gen_checkpoints_path = get_path("gen_" + reg_or_stacked + "_" + gen_model_name)
         train_gen(g_model=gen_segnet, checkpoints_path=gen_checkpoints_path, data_path=data_path)
 
+    gen_model.summary()
     print("Metrics at 0 are", eval_gen(gen_model, data_path=data_path))
     num_gen_layers = len(gen_model.get_weights())
     iteration = 1
@@ -64,17 +65,12 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
                   epochs=1, num_gen_layers=num_gen_layers, data_path=data_path)
 
         print("transferring weights")
-        # gan_weights = gan_model.get_weights()
-        # gan_gen_weights = []
-        # for layer in range(num_gen_layers):
-        #     gan_gen_weights.append(gan_weights[layer])
-        # gen_model.set_weights(gan_gen_weights)
-        # del gan_weights
-        # del gan_gen_weights
         for layer in gan_model.layers:
             if layer.name == 'generator':
                 gen_model.set_weights(layer.get_weights())
+
         gen_model.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+        gen_model.summary()
         print("Metrics at", iteration, "are", eval_gen(gen_model, data_path=data_path))
         iteration += 1
         # implement stopping condition
@@ -95,14 +91,14 @@ gen_segnet.compile(loss='categorical_crossentropy', optimizer='adadelta', metric
 #                   gen_model_name="segnet", train_gen_first=False)
 
 # Train a regular gan
-gen_segnet.summary()
-gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
-disc_segnet_reg = gan_disc.discriminator_reg(gen_segnet)
-disc_segnet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
-gan_segnet_reg = gan_disc.make_gan_reg(gen_segnet, disc_segnet_reg)
-gan_segnet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
-train_alternately(gen_model=gen_segnet, d_model=disc_segnet_reg, gan_model=gan_segnet_reg,
-                  gen_model_name="segnet", reg_or_stacked="reg", train_gen_first=False)
+# gen_segnet.summary()
+# gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
+# disc_segnet_reg = gan_disc.discriminator_reg(gen_segnet)
+# disc_segnet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+# gan_segnet_reg = gan_disc.make_gan_reg(gen_segnet, disc_segnet_reg)
+# gan_segnet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+# train_alternately(gen_model=gen_segnet, d_model=disc_segnet_reg, gan_model=gan_segnet_reg,
+#                   gen_model_name="segnet", reg_or_stacked="reg", train_gen_first=False)
 
 
 # --------------------- pspnet ---------------------------------------

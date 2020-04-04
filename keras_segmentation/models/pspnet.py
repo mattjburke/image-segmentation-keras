@@ -45,8 +45,8 @@ def pool_block(feats, pool_factor):
 
 def _pspnet(n_classes, encoder,  input_height=384, input_width=576):
 
-    assert input_height % 192 == 0
-    assert input_width % 192 == 0
+    # assert input_height % 192 == 0
+    # assert input_width % 192 == 0
 
     img_input, levels = encoder(
         input_height=input_height,  input_width=input_width)
