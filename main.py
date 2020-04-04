@@ -84,18 +84,18 @@ gen_segnet = segnet(20, input_height=128, input_width=256, encoder_level=3)  # n
 gen_segnet.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
 # gen_checkpoints_path = get_path("gen_segnet")
 # train_gen(gen_segnet, gen_checkpoints_path, data_path=data_path)
-gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
+# gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
 
 # Train my stacked input gan
-disc_segnet_stacked = gan_disc.discriminator(gen_segnet)
-disc_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
-gan_segnet_stacked = gan_disc.make_gan(gen_segnet, disc_segnet_stacked)
-gan_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
-train_alternately(gen_model=gen_segnet, d_model=disc_segnet_stacked, gan_model=gan_segnet_stacked,
-                  gen_model_name="segnet", train_gen_first=False)
+# disc_segnet_stacked = gan_disc.discriminator(gen_segnet)
+# disc_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+# gan_segnet_stacked = gan_disc.make_gan(gen_segnet, disc_segnet_stacked)
+# gan_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+# train_alternately(gen_model=gen_segnet, d_model=disc_segnet_stacked, gan_model=gan_segnet_stacked,
+#                   gen_model_name="segnet", train_gen_first=False)
 
 # Train a regular gan
-# gen_segnet.set_weights(gen_orig_weights)
+gen_segnet.summary()
 gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
 disc_segnet_reg = gan_disc.discriminator_reg(gen_segnet)
 disc_segnet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
