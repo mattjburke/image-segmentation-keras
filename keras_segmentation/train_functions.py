@@ -114,7 +114,7 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None, epochs=2, reg_
     checkpoints_path_save = checkpoints_path + "e{epoch:02d}vl{val_loss:.2f}.hdf5"
     csv_logger = keras.callbacks.callbacks.CSVLogger(history_csv, append=True)
     save_chckpts = keras.callbacks.callbacks.ModelCheckpoint(checkpoints_path_save, monitor='val_loss',
-                                                             verbose=1, save_best_only=False,
+                                                             verbose=1, save_best_only=True,
                                                              save_weights_only=True, mode='auto', period=1)
 
     if epochs == "early_stop":
@@ -216,7 +216,7 @@ def train_gan(checkpoints_path=None, gan_model=None, g_model=None, epochs=2, num
     checkpoints_path_save = checkpoints_path + "-{epoch:02d}-{val_loss:.2f}.hdf5"
     csv_logger = keras.callbacks.callbacks.CSVLogger(history_csv, append=True)
     save_chckpts = keras.callbacks.callbacks.ModelCheckpoint(checkpoints_path_save, monitor='val_loss',
-                                                             verbose=1, save_best_only=False,
+                                                             verbose=1, save_best_only=True,
                                                              save_weights_only=True, mode='auto', period=1)
 
     if epochs == "early_stop":
