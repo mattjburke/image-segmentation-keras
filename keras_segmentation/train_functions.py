@@ -69,8 +69,8 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None, epochs=2, reg_
     # need to compile again to set as trainable
     d_model.trainable = True
     d_model.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
-    for layer in d_model.layers:
-        print(layer.name, layer.trainable)
+    # for layer in d_model.layers:
+    #     print(layer.name, layer.trainable)
 
 
     train_images = data_path + "images_prepped_train/"
@@ -159,21 +159,9 @@ def train_gan(checkpoints_path=None, gan_model=None, g_model=None, epochs=2, num
     os.mkdir(checkpoints_path)
 
     # d_model.trainable = False
-    print("------ before setting trainable ----------------------------")
-    for layer in gan_model.layers:
-        print(layer.name, layer.trainable)
-
-    # i = 0
-    # # print("num_gen_layers = ", num_gen_layers)
+    # print("------ before setting trainable ----------------------------")
     # for layer in gan_model.layers:
-    #     if i < 4:  # the 5th layer is the discriminator
-    #         layer.trainable = True
-    #     else:
-    #         # for sublayer in layer.layers:
-    #         #     sublayer.trainable = False
-    #         layer.trainable = False
-    #     print(i)
-    #     i += 1
+    #     print(layer.name, layer.trainable)
 
     for layer in gan_model.layers:
         if layer.name == 'discriminator':
@@ -182,9 +170,9 @@ def train_gan(checkpoints_path=None, gan_model=None, g_model=None, epochs=2, num
     # need to compile after changing trainable
     gan_model.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
 
-    print("------- after setting trainable ----------------------------")
-    for layer in gan_model.layers:
-        print(layer.name, layer.trainable)
+    # print("------- after setting trainable ----------------------------")
+    # for layer in gan_model.layers:
+    #     print(layer.name, layer.trainable)
 
 
     input_height = g_model.input_height
@@ -280,19 +268,7 @@ def eval_gen(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-segmentat
     # there are 1525 test images, 2975 train, and 500 val
     return gen_model.evaluate_generator(test_data_gen, steps=305, use_multiprocessing=True, verbose=1)
 
-    # def alternate_training(gan_model, d_model):
-    # train generator
-    # create dataset for discriminator
-    # train discriminator
-    # update gan with disc weights
-    # train gan
-    # load generator section of gan weights into generator
-    # test accuracy of generator for comparison
-    # repeat past 3 steps until neither improve (early stop before x epochs?)
 
-    # how to update weights of only specific layer (only update discrim)
-    # how to extract certain layers to make new model (make gen from gan)
-    # need to label layers?
 
     # from https://github.com/keras-team/keras/blob/master/keras/engine/network.py
     # class Network(Layer):
