@@ -91,6 +91,7 @@ disc_segnet_stacked = gan_disc.discriminator(gen_segnet)
 disc_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
 print("len(disc_segnet_stacked.trainable_weights) = ", len(disc_segnet_stacked.trainable_weights))
 print("len(disc_segnet_stacked._collected_trainable_weights) = ", len(disc_segnet_stacked._collected_trainable_weights))
+disc_segnet_stacked.summary()
 gan_segnet_stacked = gan_disc.make_gan(gen_segnet, disc_segnet_stacked)
 gan_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
 train_alternately(gen_model=gen_segnet, d_model=disc_segnet_stacked, gan_model=gan_segnet_stacked,

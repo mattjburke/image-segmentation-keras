@@ -152,7 +152,8 @@ def get_resnet50_encoder(input_height=224,  input_width=224, input_chan=3,
     x = conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
     x = identity_block(x, 3, [64, 64, 256], stage=2, block='b')
     x = identity_block(x, 3, [64, 64, 256], stage=2, block='c')
-    f2 = one_side_pad(x)
+    # f2 = one_side_pad(x)
+    f2 = x
 
     x = conv_block(x, 3, [128, 128, 512], stage=3, block='a')
     x = identity_block(x, 3, [128, 128, 512], stage=3, block='b')
