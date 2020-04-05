@@ -69,7 +69,7 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
             if layer.name == 'generator':
                 gen_model.set_weights(layer.get_weights())
 
-        gen_model.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+        gen_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy'])
         gen_model.summary()
         print("Metrics at", iteration, "are", eval_gen(gen_model, data_path=data_path))
         iteration += 1
@@ -77,101 +77,101 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
 
 # ------------------------- segnet -----------------------------------------
 gen_segnet = segnet(20, input_height=128, input_width=256, encoder_level=3)  # n_classes changed from 19 to 20
-gen_segnet.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+gen_segnet.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 # gen_checkpoints_path = get_path("gen_segnet")
 # train_gen(gen_segnet, gen_checkpoints_path, data_path=data_path)
 # gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
 
 # Train my stacked input gan
-# disc_segnet_stacked = gan_disc.discriminator(gen_segnet)
-# disc_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
-# gan_segnet_stacked = gan_disc.make_gan(gen_segnet, disc_segnet_stacked)
-# gan_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
-# train_alternately(gen_model=gen_segnet, d_model=disc_segnet_stacked, gan_model=gan_segnet_stacked,
-#                   gen_model_name="segnet", train_gen_first=False)
+disc_segnet_stacked = gan_disc.discriminator(gen_segnet)
+disc_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy'])
+gan_segnet_stacked = gan_disc.make_gan(gen_segnet, disc_segnet_stacked)
+gan_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy'])
+train_alternately(gen_model=gen_segnet, d_model=disc_segnet_stacked, gan_model=gan_segnet_stacked,
+                  gen_model_name="segnet", train_gen_first=False)
 
 # Train a regular gan
-# gen_segnet.summary()
-# gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
-# disc_segnet_reg = gan_disc.discriminator_reg(gen_segnet)
-# disc_segnet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
-# gan_segnet_reg = gan_disc.make_gan_reg(gen_segnet, disc_segnet_reg)
-# gan_segnet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
-# train_alternately(gen_model=gen_segnet, d_model=disc_segnet_reg, gan_model=gan_segnet_reg,
-#                   gen_model_name="segnet", reg_or_stacked="reg", train_gen_first=False)
+gen_segnet.summary()
+gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
+disc_segnet_reg = gan_disc.discriminator_reg(gen_segnet)
+disc_segnet_reg.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy'])
+gan_segnet_reg = gan_disc.make_gan_reg(gen_segnet, disc_segnet_reg)
+gan_segnet_reg.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy'])
+train_alternately(gen_model=gen_segnet, d_model=disc_segnet_reg, gan_model=gan_segnet_reg,
+                  gen_model_name="segnet", reg_or_stacked="reg", train_gen_first=False)
 
 
 # --------------------- pspnet ---------------------------------------
 gen_pspnet = pspnet(20, input_height=128, input_width=256)  # n_classes changed from 19 to 20
-gen_pspnet.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+gen_pspnet.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy'])
 gen_checkpoints_path = get_path("gen_pspnet")
 train_gen(gen_pspnet, gen_checkpoints_path, data_path=data_path)
 # gen_pspnet.load_weights("")
 
 # Train my stacked input gan
 disc_pspnet_stacked = gan_disc.discriminator(gen_pspnet)
-disc_pspnet_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+disc_pspnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy'])
 gan_pspnet_stacked = gan_disc.make_gan(gen_pspnet, disc_pspnet_stacked)
-gan_pspnet_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+gan_pspnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy'])
 train_alternately(gen_model=gen_pspnet, d_model=disc_pspnet_stacked, gan_model=gan_pspnet_stacked,
                   gen_model_name="pspnet", train_gen_first=False)
 
 # Train a regular gan
 # gen_pspnet.load_weights("")
 disc_pspnet_reg = gan_disc.discriminator_reg(gen_pspnet)
-disc_pspnet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+disc_pspnet_reg.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy'])
 gan_pspnet_reg = gan_disc.make_gan_reg(gen_pspnet, disc_pspnet_reg)
-gan_pspnet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+gan_pspnet_reg.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy'])
 train_alternately(gen_model=gen_pspnet, d_model=disc_pspnet_reg, gan_model=gan_pspnet_reg,
                   gen_model_name="pspnet", reg_or_stacked="reg", train_gen_first=False)
 
 
 # --------------------- fcn ---------------------------------------
 gen_fcn = fcn_8(20, input_height=128, input_width=256)  # n_classes changed from 19 to 20
-gen_fcn.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+gen_fcn.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy', 'categorical_accuracy'])
 gen_checkpoints_path = get_path("gen_fcn_8")
 train_gen(gen_fcn, gen_checkpoints_path, data_path=data_path)
 # gen_fcn.load_weights("")
 
 # Train my stacked input gan
 disc_fcn_stacked = gan_disc.discriminator(gen_fcn)
-disc_fcn_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+disc_fcn_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy', 'categorical_accuracy'])
 gan_fcn_stacked = gan_disc.make_gan(gen_fcn, disc_fcn_stacked)
-gan_fcn_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+gan_fcn_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy', 'categorical_accuracy'])
 train_alternately(gen_model=gen_fcn, d_model=disc_fcn_stacked, gan_model=gan_fcn_stacked,
                   gen_model_name="fcn_8", train_gen_first=False)
 
 # Train a regular gan
 # gen_fcn.load_weights("")
 disc_fcn_reg = gan_disc.discriminator_reg(gen_fcn)
-disc_fcn_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+disc_fcn_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy', 'categorical_accuracy'])
 gan_fcn_reg = gan_disc.make_gan_reg(gen_fcn, disc_fcn_reg)
-gan_fcn_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+gan_fcn_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy', 'categorical_accuracy'])
 train_alternately(gen_model=gen_fcn, d_model=disc_fcn_reg, gan_model=gan_fcn_reg,
                   gen_model_name="fcn_8", reg_or_stacked="reg", train_gen_first=False)
 
 
 # # --------------------- unet ---------------------------------------
 gen_unet = unet_mini(20, input_height=128, input_width=256)  # n_classes changed from 19 to 20
-gen_unet.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+gen_unet.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy', 'categorical_accuracy'])
 gen_checkpoints_path = get_path("gen_unet_mini")
 train_gen(gen_unet, gen_checkpoints_path, data_path=data_path)
 # gen_unet.load_weights("")
 
 # Train my stacked input gan
 disc_unet_stacked = gan_disc.discriminator(gen_unet)
-disc_unet_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+disc_unet_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy', 'categorical_accuracy'])
 gan_unet_stacked = gan_disc.make_gan(gen_unet, disc_unet_stacked)
-gan_unet_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+gan_unet_stacked.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy', 'categorical_accuracy'])
 train_alternately(gen_model=gen_unet, d_model=disc_unet_stacked, gan_model=gan_unet_stacked,
                   gen_model_name="unet_mini", train_gen_first=False)
 
 # Train a regular gan
 # gen_unet.load_weights("")
 disc_unet_reg = gan_disc.discriminator_reg(gen_unet)
-disc_unet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+disc_unet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy', 'categorical_accuracy'])
 gan_unet_reg = gan_disc.make_gan_reg(gen_unet, disc_unet_reg)
-gan_unet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+gan_unet_reg.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy', 'categorical_accuracy'])
 train_alternately(gen_model=gen_unet, d_model=disc_unet_reg, gan_model=gan_unet_reg,
                   gen_model_name="unet_mini", reg_or_stacked="reg", train_gen_first=False)
 
