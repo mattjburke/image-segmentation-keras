@@ -52,7 +52,6 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
 
     gen_model.summary()
     print("Metrics at 0 are", eval_gen(gen_model, data_path=data_path))
-    num_gen_layers = len(gen_model.get_weights())
     iteration = 1
     while iteration <= 5:
         print("beginning train_disc")
@@ -63,17 +62,18 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
         print("beginning train_gan")
         gan_checkpoints_path = get_path("gan_" + reg_or_stacked + "_" + gen_model_name)
         train_gan(gan_model=gan_model, g_model=gen_model, checkpoints_path=gan_checkpoints_path,
-                  epochs=1, num_gen_layers=num_gen_layers, data_path=data_path)
+                  epochs=1, data_path=data_path)
 
         print("transferring weights")
         for layer in gan_model.layers:
             if layer.name == 'generator':
-                print("found gen layer")
-                gen_model.set_weights(layer.get_weights())
-                assert gen_model.get_weights()[0] == layer.get_weights()[0]
+                print("found generator layer")
+                print("trainable:", layer.trainable is True)
+                # gen_model.set_weights(layer.get_weights())
+                assert gen_model.get_weights() == layer.get_weights()
                 print("weights equal")
 
-        gen_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
+        # gen_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
         # gen_model.summary()
         print("Metrics at", iteration, "are", eval_gen_mean_iou(gen_model, data_path=data_path))
         iteration += 1

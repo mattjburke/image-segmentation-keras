@@ -70,8 +70,9 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None, epochs=2, reg_
     os.mkdir(checkpoints_path)
 
     # need to compile again to set as trainable
-    d_model.trainable = True
-    d_model.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+    # d_model.trainable = True
+    print("d_model.trainable = ", d_model.trainable is True)
+    # d_model.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
     # for layer in d_model.layers:
     #     print(layer.name, layer.trainable)
 
@@ -151,7 +152,7 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None, epochs=2, reg_
 
 
 # g_model is passed to use input_height, output_height, etc to create data loaders and save to log
-def train_gan(checkpoints_path=None, gan_model=None, g_model=None, epochs=2, num_gen_layers=5,
+def train_gan(checkpoints_path=None, gan_model=None, g_model=None, epochs=2,
               data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
     if (checkpoints_path is None) or (gan_model is None) or (g_model is None):
         print("train_gan() needs a gan_model, g_model, and checkpoints_path")
@@ -168,10 +169,12 @@ def train_gan(checkpoints_path=None, gan_model=None, g_model=None, epochs=2, num
 
     for layer in gan_model.layers:
         if layer.name == 'discriminator':
-            layer.trainable = False
+            print("found discriminator layer")
+            # layer.trainable = False
+            print("trainable:", layer.trainable is True)
 
     # need to compile after changing trainable
-    gan_model.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+    # gan_model.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
 
     # print("------- after setting trainable ----------------------------")
     # for layer in gan_model.layers:

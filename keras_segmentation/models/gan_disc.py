@@ -52,6 +52,7 @@ def make_gan(g_model, d_model):
     # im_array_out = Lambda(lambda x: get_image_array(x, out_width, out_height), name='resize_input_img')(orig_img)
     gen_output = Lambda(lambda x: g_model(x), name='generator')(orig_img)
     stacked = concatenate([im_array_out, gen_output])
+    d_model.trainable = False
     discrim_output = Lambda(lambda x: d_model(x), name='discriminator', trainable=False)(stacked)
     # gan_output = discrim_layer()(stacked)      # d_model(stacked)
     model = keras.Model(orig_img, discrim_output)
@@ -62,6 +63,7 @@ def make_gan(g_model, d_model):
 def make_gan_reg(g_model, d_model):
     orig_img = g_model.input
     gen_output = Lambda(lambda x: g_model(x), name='generator')(orig_img)
+    d_model.trainable = False
     discrim_output = Lambda(lambda x: d_model(x), name='discriminator', trainable=False)(gen_output)
     model = keras.Model(orig_img, discrim_output)
     # model = add_input_dims(model)
