@@ -67,10 +67,13 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
         print("transferring weights")
         for layer in gan_model.layers:
             if layer.name == 'generator':
+                print("found gen layer")
                 gen_model.set_weights(layer.get_weights())
+                assert gen_model.get_weights()[0] == layer.get_weights()[0]
+                print("weights equal")
 
         gen_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-        gen_model.summary()
+        # gen_model.summary()
         print("Metrics at", iteration, "are", eval_gen_mean_iou(gen_model, data_path=data_path))
         iteration += 1
         # implement stopping condition
@@ -94,7 +97,7 @@ train_alternately(gen_model=gen_segnet, d_model=disc_segnet_stacked, gan_model=g
 # not sure why reinitializing speeds up
 gen_segnet = segnet(20, input_height=128, input_width=256, encoder_level=3)  # n_classes changed from 19 to 20
 gen_segnet.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-gen_segnet.summary()
+# gen_segnet.summary()
 gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
 disc_segnet_reg = gan_disc.discriminator_reg(gen_segnet)
 disc_segnet_reg.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])

@@ -347,5 +347,7 @@ def eval_gen_mean_iou(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-
 
     # print(gen_model.metrics_names)
     # there are 1525 test images, 2975 train, and 500 val
-    return new_gen.evaluate_generator(test_data_gen, steps=305, use_multiprocessing=True, verbose=1)
+    metrics = new_gen.evaluate_generator(test_data_gen, steps=305, use_multiprocessing=True, verbose=1)
+    print("adam_loss, accuracy, categorical_accuracy, mean_iou = ", metrics)
+    return metrics
 
