@@ -57,12 +57,12 @@ def train_alternately(gen_model=None, gen_iou_model=None, d_model=None, gan_mode
         print("beginning train_disc")
         disc_checkpoints_path = get_path("disc_" + reg_or_stacked + "_" + gen_model_name)
         train_disc(g_model=gen_model, d_model=d_model, reg_or_stacked=reg_or_stacked, checkpoints_path=disc_checkpoints_path,
-                   epochs=4, data_path=data_path)
+                   epochs='early_stop', data_path=data_path)
 
         print("beginning train_gan")
         gan_checkpoints_path = get_path("gan_" + reg_or_stacked + "_" + gen_model_name)
         train_gan(gan_model=gan_model, g_model=gen_model, checkpoints_path=gan_checkpoints_path,
-                  epochs=1, data_path=data_path)
+                  epochs=2, data_path=data_path)
 
         # print("transferring weights")
         for layer in gan_model.layers:
@@ -99,7 +99,7 @@ gen_segnet_iou = gan_disc.make_gen_iou(gen_segnet)
 # gen_segnet_iou.summary()
 # gen_segnet_iou.compile(loss='categorical_crossentropy', optimizer='adam',
 #                        metrics=['accuracy', 'sparse_categorical_accuracy', tf.keras.metrics.MeanIoU(num_classes=20)])
-train_alternately(gen_model=gen_segnet_iou, d_model=disc_segnet_stacked, gan_model=gan_segnet_stacked,
+train_alternately(gen_model=gen_segnet, d_model=disc_segnet_stacked, gan_model=gan_segnet_stacked,
                   gen_model_name="segnet", train_gen_first=False)
 
 # Train a regular gan

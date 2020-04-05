@@ -124,7 +124,7 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None, epochs=2, reg_
                                                              save_weights_only=True, mode='auto', period=1)
 
     if epochs == "early_stop":
-        early_stop = keras.callbacks.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=1,
+        early_stop = keras.callbacks.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=1, verbose=1,
                                                              mode='auto', baseline=None, restore_best_weights=False)
 
         print("training discriminator with early stopping")
