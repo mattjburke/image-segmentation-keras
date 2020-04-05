@@ -57,7 +57,7 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
         print("beginning train_disc")
         disc_checkpoints_path = get_path("disc_" + reg_or_stacked + "_" + gen_model_name)
         train_disc(g_model=gen_model, d_model=d_model, reg_or_stacked=reg_or_stacked, checkpoints_path=disc_checkpoints_path,
-                   epochs=1, data_path=data_path)
+                   epochs=4, data_path=data_path)
 
         print("beginning train_gan")
         gan_checkpoints_path = get_path("gan_" + reg_or_stacked + "_" + gen_model_name)
@@ -84,7 +84,7 @@ gen_segnet = segnet(20, input_height=128, input_width=256, encoder_level=3)  # n
 gen_segnet.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
 # gen_checkpoints_path = get_path("gen_segnet")
 # train_gen(gen_segnet, gen_checkpoints_path, data_path=data_path)
-# gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
+gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
 
 # Train my stacked input gan
 disc_segnet_stacked = gan_disc.discriminator(gen_segnet)
