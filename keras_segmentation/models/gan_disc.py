@@ -2,6 +2,7 @@ import keras
 from keras.layers import *
 import tensorflow as tf
 from .resnet50 import get_resnet50_encoder
+from .basic_models import vanilla_encoder
 from ..data_utils.data_loader import get_image_array
 # from .model_utils import add_input_dims
 
@@ -11,10 +12,12 @@ def discriminator(g_model, pretrained_weights=None, model_name="resnet50_discrim
     input_height = g_model.output_height
     input_width = g_model.output_width
     # input is 20 channels, one for each segmentation class and 3 for image rgb channels
-    img_input, [f1, f2, f3, f4, f5] = get_resnet50_encoder(input_height=input_height,  input_width=input_width,
-                                                           input_chan=23, classes=2, pretrained=None)
+    # img_input, [f1, f2, f3, f4, f5] = get_resnet50_encoder(input_height=input_height,  input_width=input_width,
+    #                                                        input_chan=23, pretrained=None)
+
+    img_input, [f1, f2, f3] = vanilla_encoder(input_height=input_height,  input_width=input_width, input_chan=23)
     # x = AveragePooling2D((7, 7))(f5)
-    x = Flatten()(f2)
+    x = Flatten()(f3)
     # x = Dense(256)(x)
     x = Dense(32)(x)
     x = Dense(1, activation='sigmoid')(x)
