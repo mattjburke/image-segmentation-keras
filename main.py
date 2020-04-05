@@ -6,6 +6,7 @@ import keras_segmentation.models.gan_disc as gan_disc
 from keras_segmentation.train_functions import train_gen, train_disc, train_gan, eval_gen, eval_gen_mean_iou
 from datetime import datetime
 import keras
+import tensorflow as tf
 print("finished imports")
 
 pronto_data_path = "/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"
@@ -44,7 +45,7 @@ def flatten_model(model_nested):
     return model_flat
 
 
-def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_name="unknown", reg_or_stacked="stacked",train_gen_first=False):
+def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_name="unknown", reg_or_stacked="stacked", train_gen_first=False):
     if train_gen_first:
         gen_checkpoints_path = get_path("gen_" + reg_or_stacked + "_" + gen_model_name)
         train_gen(g_model=gen_segnet, checkpoints_path=gen_checkpoints_path, data_path=data_path)
@@ -72,7 +73,7 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
                 assert gen_model.get_weights()[0] == layer.get_weights()[0]
                 print("weights equal")
 
-        gen_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        gen_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
         # gen_model.summary()
         print("Metrics at", iteration, "are", eval_gen_mean_iou(gen_model, data_path=data_path))
         iteration += 1
@@ -80,29 +81,29 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
 
 # ------------------------- segnet -----------------------------------------
 gen_segnet = segnet(20, input_height=128, input_width=256, encoder_level=3)  # n_classes changed from 19 to 20
-gen_segnet.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+gen_segnet.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
 # gen_checkpoints_path = get_path("gen_segnet")
 # train_gen(gen_segnet, gen_checkpoints_path, data_path=data_path)
 # gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
 
 # Train my stacked input gan
 disc_segnet_stacked = gan_disc.discriminator(gen_segnet)
-disc_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+disc_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
 gan_segnet_stacked = gan_disc.make_gan(gen_segnet, disc_segnet_stacked)
-gan_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+gan_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
 train_alternately(gen_model=gen_segnet, d_model=disc_segnet_stacked, gan_model=gan_segnet_stacked,
                   gen_model_name="segnet", train_gen_first=False)
 
 # Train a regular gan
 # not sure why reinitializing speeds up
 gen_segnet = segnet(20, input_height=128, input_width=256, encoder_level=3)  # n_classes changed from 19 to 20
-gen_segnet.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+gen_segnet.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
 # gen_segnet.summary()
 gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
 disc_segnet_reg = gan_disc.discriminator_reg(gen_segnet)
-disc_segnet_reg.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+disc_segnet_reg.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
 gan_segnet_reg = gan_disc.make_gan_reg(gen_segnet, disc_segnet_reg)
-gan_segnet_reg.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+gan_segnet_reg.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
 train_alternately(gen_model=gen_segnet, d_model=disc_segnet_reg, gan_model=gan_segnet_reg,
                   gen_model_name="segnet", reg_or_stacked="reg", train_gen_first=False)
 
