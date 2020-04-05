@@ -3,7 +3,7 @@ from keras_segmentation.models.pspnet import pspnet
 from keras_segmentation.models.fcn import fcn_8, fcn_32
 from keras_segmentation.models.unet import unet_mini
 import keras_segmentation.models.gan_disc as gan_disc
-from keras_segmentation.train_functions import train_gen, train_disc, train_gan, eval_gen
+from keras_segmentation.train_functions import train_gen, train_disc, train_gan, eval_gen, eval_gen_mean_iou
 from datetime import datetime
 import keras
 print("finished imports")
@@ -71,7 +71,7 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
 
         gen_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy'])
         gen_model.summary()
-        print("Metrics at", iteration, "are", eval_gen(gen_model, data_path=data_path))
+        print("Metrics at", iteration, "are", eval_gen_mean_iou(gen_model, data_path=data_path))
         iteration += 1
         # implement stopping condition
 
