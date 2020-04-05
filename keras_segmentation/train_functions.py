@@ -5,8 +5,8 @@ import os
 import json
 import keras
 from keras_segmentation.models.gan_disc import make_gan
-from keras_segmentation.data_utils.data_loader import image_flabels_generator, image_segmentation_pairs_dataset, \
-    image_segmentation_pairs_generator, image_segmentation_generator
+from keras_segmentation.data_utils.data_loader import image_flabels_generator, image_segmentation_pairs_generator, \
+    image_segmentation_generator
 import tensorflow as tf
 # from keras.models import load_model, load_weights
 from keras_segmentation.models.model_utils import add_input_dims

@@ -77,7 +77,7 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
 
 # ------------------------- segnet -----------------------------------------
 gen_segnet = segnet(20, input_height=128, input_width=256, encoder_level=3)  # n_classes changed from 19 to 20
-gen_segnet.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+gen_segnet.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy'])
 # gen_checkpoints_path = get_path("gen_segnet")
 # train_gen(gen_segnet, gen_checkpoints_path, data_path=data_path)
 # gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
@@ -91,6 +91,9 @@ train_alternately(gen_model=gen_segnet, d_model=disc_segnet_stacked, gan_model=g
                   gen_model_name="segnet", train_gen_first=False)
 
 # Train a regular gan
+# not sure why reinitializing speeds up
+gen_segnet = segnet(20, input_height=128, input_width=256, encoder_level=3)  # n_classes changed from 19 to 20
+gen_segnet.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy'])
 gen_segnet.summary()
 gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
 disc_segnet_reg = gan_disc.discriminator_reg(gen_segnet)
