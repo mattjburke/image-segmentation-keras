@@ -45,7 +45,7 @@ def flatten_model(model_nested):
     return model_flat
 
 
-def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_name="unknown", reg_or_stacked="stacked", train_gen_first=False):
+def train_alternately(gen_model=None, gen_iou_model=None, d_model=None, gan_model=None, gen_model_name="unknown", reg_or_stacked="stacked", train_gen_first=False):
     if train_gen_first:
         gen_checkpoints_path = get_path("gen_" + reg_or_stacked + "_" + gen_model_name)
         train_gen(g_model=gen_segnet, checkpoints_path=gen_checkpoints_path, data_path=data_path)
@@ -64,7 +64,7 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
         train_gan(gan_model=gan_model, g_model=gen_model, checkpoints_path=gan_checkpoints_path,
                   epochs=1, data_path=data_path)
 
-        print("transferring weights")
+        # print("transferring weights")
         for layer in gan_model.layers:
             if layer.name == 'generator':
                 print("found generator layer")
@@ -75,7 +75,8 @@ def train_alternately(gen_model=None, d_model=None, gan_model=None, gen_model_na
 
         # gen_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
         # gen_model.summary()
-        print("Metrics at", iteration, "are", eval_gen_mean_iou(gen_model, data_path=data_path))
+        print("Metrics of gen at", iteration, "are", eval_gen(gen_model, data_path=data_path))
+        # print("Metrics of gen_iou at", iteration, "are", eval_gen_mean_iou(gen_iou_model, data_path=data_path))
         iteration += 1
         # implement stopping condition
 
@@ -95,8 +96,9 @@ disc_segnet_stacked.summary()
 gan_segnet_stacked = gan_disc.make_gan(gen_segnet, disc_segnet_stacked)
 gan_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
 gen_segnet_iou = gan_disc.make_gen_iou(gen_segnet)
-gen_segnet_iou.compile(loss='categorical_crossentropy', optimizer='adam',
-                       metrics=['accuracy', 'categorical_accuracy', tf.keras.metrics.MeanIoU(num_classes=20)])
+# gen_segnet_iou.summary()
+# gen_segnet_iou.compile(loss='categorical_crossentropy', optimizer='adam',
+#                        metrics=['accuracy', 'sparse_categorical_accuracy', tf.keras.metrics.MeanIoU(num_classes=20)])
 train_alternately(gen_model=gen_segnet_iou, d_model=disc_segnet_stacked, gan_model=gan_segnet_stacked,
                   gen_model_name="segnet", train_gen_first=False)
 
