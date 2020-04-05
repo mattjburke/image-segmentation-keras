@@ -339,21 +339,21 @@ def eval_gen_mean_iou(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-
     do_augment = False
     # history_csv = checkpoints_path + "model_history_log.csv"
 
-    gen_input = gen_model.input
-    gen_output = Lambda(lambda x: gen_model(x), name='generator')(gen_input)
-    gen_output.set_weights(gen_model.get_weights())
-    class_labels = Lambda(lambda x: tf.math.argmax(x, 2))(gen_output)  # axis reduced is 2
-    new_gen = keras.Model(gen_input, class_labels)
-    new_gen.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy', tf.keras.metrics.MeanIoU(num_classes=20)])
+    # gen_input = gen_model.input
+    # gen_output = Lambda(lambda x: gen_model(x), name='generator')(gen_input)
+    # gen_output.set_weights(gen_model.get_weights())
+    # class_labels = Lambda(lambda x: tf.math.argmax(x, 2))(gen_output)  # axis reduced is 2
+    # new_gen = keras.Model(gen_input, class_labels)
+    # new_gen.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy', tf.keras.metrics.MeanIoU(num_classes=20)])
 
     test_data_gen = image_segmentation_labels_generator(
         test_images, test_annotations, batch_size, n_classes,
         input_height, input_width, output_height, output_width, do_augment=do_augment)
 
     print("gen_model metrics = ", gen_model.metrics_names)
-    print("new_gen metrics = ", new_gen.metrics_names)
+    print("new_gen metrics = ", gen_model.metrics_names)
     # there are 1525 test images, 2975 train, and 500 val
-    metrics = new_gen.evaluate_generator(test_data_gen, steps=305, use_multiprocessing=True, verbose=1)
+    metrics = gen_model.evaluate_generator(test_data_gen, steps=305, use_multiprocessing=True, verbose=1)
     print("adam_loss, accuracy, categorical_accuracy, mean_iou = ", metrics)
     return metrics
 

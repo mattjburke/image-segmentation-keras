@@ -94,7 +94,10 @@ print("len(disc_segnet_stacked._collected_trainable_weights) = ", len(disc_segne
 disc_segnet_stacked.summary()
 gan_segnet_stacked = gan_disc.make_gan(gen_segnet, disc_segnet_stacked)
 gan_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
-train_alternately(gen_model=gen_segnet, d_model=disc_segnet_stacked, gan_model=gan_segnet_stacked,
+gen_segnet_iou = gan_disc.make_gen_iou(gen_segnet)
+gen_segnet_iou.compile(loss='categorical_crossentropy', optimizer='adam',
+                       metrics=['accuracy', 'categorical_accuracy', tf.keras.metrics.MeanIoU(num_classes=20)])
+train_alternately(gen_model=gen_segnet_iou, d_model=disc_segnet_stacked, gan_model=gan_segnet_stacked,
                   gen_model_name="segnet", train_gen_first=False)
 
 # Train a regular gan

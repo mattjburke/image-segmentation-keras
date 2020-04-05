@@ -73,3 +73,19 @@ def make_gan_reg(g_model, d_model):
     # model = add_input_dims(model)
     return model
 
+
+def make_gen_iou(gen_model):
+    gen_input = gen_model.get_input_at(0)  # bug causes multiple inbound nodes?
+    gen_output = Lambda(lambda x: gen_model(x), name='generator')(gen_input)
+    class_labels = Lambda(lambda x: tf.math.argmax(x, 2))(gen_output)  # axis reduced is 2
+    new_gen = keras.Model(gen_input, class_labels)
+    # new_gen.compile(loss='categorical_crossentropy', optimizer='adam',
+    #                 metrics=['accuracy', 'categorical_accuracy', tf.keras.metrics.MeanIoU(num_classes=20)])
+    new_gen.n_classes = gen_model.n_classes
+    new_gen.input_height = gen_model.input_height
+    new_gen.input_width = gen_model.input_width
+    new_gen.output_height = gen_model.output_height
+    new_gen.output_width = gen_model.output_width
+
+    return new_gen
+
