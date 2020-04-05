@@ -71,7 +71,9 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None, epochs=2, reg_
 
     # need to compile again to set as trainable
     # d_model.trainable = True
-    print("d_model.trainable = ", d_model.trainable is True)
+    print("d_model.trainable = ", d_model.trainable is True)  # since compiled before, weights are still trainable. Warning shows this
+    # check Model._collected_trainable_weights and compare to discriminator.trainable_weights
+    print("len(d_model._collected_trainable_weights) = ", len(d_model._collected_trainable_weights))
     # d_model.compile(loss='binary_crossentropy', optimizer='adadelta', metrics=['accuracy'])
     # for layer in d_model.layers:
     #     print(layer.name, layer.trainable)
@@ -348,7 +350,8 @@ def eval_gen_mean_iou(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-
         test_images, test_annotations, batch_size, n_classes,
         input_height, input_width, output_height, output_width, do_augment=do_augment)
 
-    # print(gen_model.metrics_names)
+    print("gen_model metrics = ", gen_model.metrics_names)
+    print("new_gen metrics = ", new_gen.metrics_names)
     # there are 1525 test images, 2975 train, and 500 val
     metrics = new_gen.evaluate_generator(test_data_gen, steps=305, use_multiprocessing=True, verbose=1)
     print("adam_loss, accuracy, categorical_accuracy, mean_iou = ", metrics)
