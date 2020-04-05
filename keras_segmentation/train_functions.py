@@ -339,7 +339,7 @@ def eval_gen_mean_iou(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-
     gen_output.set_weights(gen_model.get_weights())
     class_labels = Lambda(lambda x: tf.math.argmax(x, 2))(gen_output)  # axis reduced is 2
     new_gen = keras.Model(gen_input, class_labels)
-    new_gen.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.MeanIoU(num_classes=20)])
+    new_gen.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy', tf.keras.metrics.MeanIoU(num_classes=20)])
 
     test_data_gen = image_segmentation_labels_generator(
         test_images, test_annotations, batch_size, n_classes,
