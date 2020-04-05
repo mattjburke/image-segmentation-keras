@@ -15,9 +15,10 @@ def discriminator(g_model, pretrained_weights=None, model_name="resnet50_discrim
     # img_input, [f1, f2, f3, f4, f5] = get_resnet50_encoder(input_height=input_height,  input_width=input_width,
     #                                                        input_chan=23, pretrained=None)
 
-    img_input, [f1, f2, f3] = vanilla_encoder(input_height=input_height,  input_width=input_width, input_chan=23)
+    img_input, levels = vanilla_encoder(input_height=input_height,  input_width=input_width, input_chan=23)
     # x = AveragePooling2D((7, 7))(f5)
-    x = Flatten()(f3)
+    f4 = levels[3]
+    x = Flatten()(f4)
     # x = Dense(256)(x)
     x = Dense(32)(x)
     x = Dense(1, activation='sigmoid')(x)
