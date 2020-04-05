@@ -67,7 +67,7 @@ def train_disc(g_model=None, d_model=None, checkpoints_path=None, epochs=2, reg_
     assert d_model is not None
     assert g_model is not None
 
-    os.mkdir(checkpoints_path)
+    # os.mkdir(checkpoints_path)
 
     # need to compile again to set as trainable
     # d_model.trainable = True
@@ -162,7 +162,7 @@ def train_gan(checkpoints_path=None, gan_model=None, g_model=None, epochs=2,
     assert gan_model is not None
     assert g_model is not None
 
-    os.mkdir(checkpoints_path)
+    # os.mkdir(checkpoints_path)
 
     # d_model.trainable = False
     # print("------ before setting trainable ----------------------------")

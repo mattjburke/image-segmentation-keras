@@ -240,11 +240,12 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size, gen_m
         X = []
         Y = []
         # i = 0
+        use_fake = (random.random() < 0.5)
         for pair in range(batch_size):
             # print("pair =", pair)
             im, seg = next(zipped)
             # i += 1
-            use_fake = (random.random() < 0.5)  # i % 2  # use Math.rand() instead?
+            # use_fake = (random.random() < 0.5)  # i % 2  # use Math.rand() instead?
 
             im = cv2.imread(im, 1)
             seg = cv2.imread(seg, 1)
@@ -283,121 +284,121 @@ def image_segmentation_pairs_generator(images_path, segs_path, batch_size, gen_m
         yield np.array(X), np.array(Y)
 
 
-def train_on_image_seg_batches(d_model, epochs, images_path, segs_path, batch_size,
-                                       n_classes, input_height, input_width,
-                                       output_height, output_width, gen_model,
-                                       do_augment=False):
-    img_seg_pairs = get_pairs_from_paths(images_path, segs_path)
-    random.shuffle(img_seg_pairs)
-    zipped = itertools.cycle(img_seg_pairs)
-    # seq = keras.utils.Sequence()
+# def train_on_image_seg_batches(d_model, epochs, images_path, segs_path, batch_size,
+#                                        n_classes, input_height, input_width,
+#                                        output_height, output_width, gen_model,
+#                                        do_augment=False):
+#     img_seg_pairs = get_pairs_from_paths(images_path, segs_path)
+#     random.shuffle(img_seg_pairs)
+#     zipped = itertools.cycle(img_seg_pairs)
+#     # seq = keras.utils.Sequence()
+#
+#     use_fake = True
+#     # while True:
+#     for i in range(0, epochs):
+#         X = []
+#         Y = []
+#         use_fake = not use_fake
+#         print("epoch, use_fake =", i, use_fake)
+#         for pair in range(batch_size):
+#             # print("pair =", pair)
+#             im, seg = next(zipped)
+#             # i += 1
+#             # use_fake = i % 2  # use Math.rand() instead?
+#
+#             im = cv2.imread(im, 1)
+#             seg = cv2.imread(seg, 1)
+#             # print("im shape = ", im.shape)
+#             # print("seg shape = ", seg.shape)
+#
+#             if do_augment:
+#                 im, seg[:, :, 0] = augment_seg(im, seg[:, :, 0])
+#
+#             im_array_in = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
+#             im_array_out = get_image_array(im, output_width, output_height, ordering=IMAGE_ORDERING)
+#             # print("im_array_out shape = ", im_array_out.shape)
+#
+#             if use_fake:
+#                 seg_array = gen_model.predict([[im_array_in]])
+#                 seg_array = seg_array[0]
+#                 # print("seg_array fake1 shape = ", seg_array.shape)
+#                 # seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
+#                 # print("seg_array fake2 shape = ", seg_array.shape)
+#                 Y.append(FAKE)
+#             else:
+#                 seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
+#                 # print("seg_array real shape = ", seg_array.shape)
+#                 Y.append(REAL)
+#
+#             stacked = np.dstack((im_array_out, seg_array))  # stacks along 3rd axis
+#             X.append(stacked)
+#
+#         # yield np.array(X), np.array(Y)
+#         X_batch = np.array(X)
+#         Y_batch = np.array(Y)
+#         loss_acc = d_model.train_on_batch(X_batch, Y_batch)
+#
+#         # d_model.fit(X_batch, Y_batch,
+#         #             validation_data=(X_val, Y_val),
+#         #             epochs=epochs,
+#         #             batch_size=5, steps_per_epoch=595, validation_steps=100,  # there are 2975 train, 500 val
+#         #             use_multiprocessing=False,  # Used for generator or keras.utils.Sequence input only
+#         #             callbacks=[csv_logger, save_chckpts])
 
-    use_fake = True
-    # while True:
-    for i in range(0, epochs):
-        X = []
-        Y = []
-        use_fake = not use_fake
-        print("epoch, use_fake =", i, use_fake)
-        for pair in range(batch_size):
-            # print("pair =", pair)
-            im, seg = next(zipped)
-            # i += 1
-            # use_fake = i % 2  # use Math.rand() instead?
 
-            im = cv2.imread(im, 1)
-            seg = cv2.imread(seg, 1)
-            # print("im shape = ", im.shape)
-            # print("seg shape = ", seg.shape)
-
-            if do_augment:
-                im, seg[:, :, 0] = augment_seg(im, seg[:, :, 0])
-
-            im_array_in = get_image_array(im, input_width, input_height, ordering=IMAGE_ORDERING)
-            im_array_out = get_image_array(im, output_width, output_height, ordering=IMAGE_ORDERING)
-            # print("im_array_out shape = ", im_array_out.shape)
-
-            if use_fake:
-                seg_array = gen_model.predict([[im_array_in]])
-                seg_array = seg_array[0]
-                # print("seg_array fake1 shape = ", seg_array.shape)
-                # seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
-                # print("seg_array fake2 shape = ", seg_array.shape)
-                Y.append(FAKE)
-            else:
-                seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
-                # print("seg_array real shape = ", seg_array.shape)
-                Y.append(REAL)
-
-            stacked = np.dstack((im_array_out, seg_array))  # stacks along 3rd axis
-            X.append(stacked)
-
-        # yield np.array(X), np.array(Y)
-        X_batch = np.array(X)
-        Y_batch = np.array(Y)
-        loss_acc = d_model.train_on_batch(X_batch, Y_batch)
-
-        # d_model.fit(X_batch, Y_batch,
-        #             validation_data=(X_val, Y_val),
-        #             epochs=epochs,
-        #             batch_size=5, steps_per_epoch=595, validation_steps=100,  # there are 2975 train, 500 val
-        #             use_multiprocessing=False,  # Used for generator or keras.utils.Sequence input only
-        #             callbacks=[csv_logger, save_chckpts])
-
-
-def image_segmentation_pairs_dataset(images_path, segs_path, gen_model, do_augment=False):
-
-    n_classes = gen_model.n_classes
-    g_input_height = gen_model.input_height
-    g_input_width = gen_model.input_width
-    g_output_height = gen_model.output_height
-    g_output_width = gen_model.output_width
-
-    img_seg_pairs = get_pairs_from_paths(images_path, segs_path)
-    random.shuffle(img_seg_pairs)
-    zipped = itertools.cycle(img_seg_pairs)
-    # seq = keras.utils.Sequence()
-
-    # while True:
-    X = []
-    Y = []
-    i = 0
-    for pair in zipped:
-        # print("pair =", pair)
-        im, seg = next(zipped)
-        i += 1
-        use_fake = i % 2  # use Math.rand() instead?
-
-        im = cv2.imread(im, 1)
-        seg = cv2.imread(seg, 1)
-        # print("im shape = ", im.shape)
-        # print("seg shape = ", seg.shape)
-
-        if do_augment:
-            im, seg[:, :, 0] = augment_seg(im, seg[:, :, 0])
-
-        im_array_in = get_image_array(im, g_input_width, g_input_height, ordering=IMAGE_ORDERING)
-        im_array_out = get_image_array(im, g_output_width, g_output_height, ordering=IMAGE_ORDERING)
-        # print("im_array_out shape = ", im_array_out.shape)
-
-        if use_fake == 1:
-            seg_array = gen_model.predict([[im_array_in]])
-            seg_array = seg_array[0]
-            # print("seg_array fake1 shape = ", seg_array.shape)
-            # seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
-            # print("seg_array fake2 shape = ", seg_array.shape)
-            Y.append(FAKE)
-        else:
-            seg_array = get_segmentation_array(seg, n_classes, g_output_width, g_output_height, no_reshape=True)
-            # print("seg_array real shape = ", seg_array.shape)
-            Y.append(REAL)
-
-        stacked = np.dstack((im_array_out, seg_array))  # stacks along 3rd axis
-        X.append(stacked)
-
-        # yield np.array(X), np.array(Y)
-
-    return X, Y
+# def image_segmentation_pairs_dataset(images_path, segs_path, gen_model, do_augment=False):
+#
+#     n_classes = gen_model.n_classes
+#     g_input_height = gen_model.input_height
+#     g_input_width = gen_model.input_width
+#     g_output_height = gen_model.output_height
+#     g_output_width = gen_model.output_width
+#
+#     img_seg_pairs = get_pairs_from_paths(images_path, segs_path)
+#     random.shuffle(img_seg_pairs)
+#     zipped = itertools.cycle(img_seg_pairs)
+#     # seq = keras.utils.Sequence()
+#
+#     # while True:
+#     X = []
+#     Y = []
+#     i = 0
+#     for pair in zipped:
+#         # print("pair =", pair)
+#         im, seg = next(zipped)
+#         i += 1
+#         use_fake = i % 2  # use Math.rand() instead?
+#
+#         im = cv2.imread(im, 1)
+#         seg = cv2.imread(seg, 1)
+#         # print("im shape = ", im.shape)
+#         # print("seg shape = ", seg.shape)
+#
+#         if do_augment:
+#             im, seg[:, :, 0] = augment_seg(im, seg[:, :, 0])
+#
+#         im_array_in = get_image_array(im, g_input_width, g_input_height, ordering=IMAGE_ORDERING)
+#         im_array_out = get_image_array(im, g_output_width, g_output_height, ordering=IMAGE_ORDERING)
+#         # print("im_array_out shape = ", im_array_out.shape)
+#
+#         if use_fake == 1:
+#             seg_array = gen_model.predict([[im_array_in]])
+#             seg_array = seg_array[0]
+#             # print("seg_array fake1 shape = ", seg_array.shape)
+#             # seg_array = get_segmentation_array(seg, n_classes, output_width, output_height, no_reshape=True)
+#             # print("seg_array fake2 shape = ", seg_array.shape)
+#             Y.append(FAKE)
+#         else:
+#             seg_array = get_segmentation_array(seg, n_classes, g_output_width, g_output_height, no_reshape=True)
+#             # print("seg_array real shape = ", seg_array.shape)
+#             Y.append(REAL)
+#
+#         stacked = np.dstack((im_array_out, seg_array))  # stacks along 3rd axis
+#         X.append(stacked)
+#
+#         # yield np.array(X), np.array(Y)
+#
+#     return X, Y
 
 
 def image_flabels_generator(images_path, segs_path, batch_size, input_height, input_width, do_augment=False):

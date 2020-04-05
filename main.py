@@ -6,6 +6,7 @@ import keras_segmentation.models.gan_disc as gan_disc
 from keras_segmentation.train_functions import train_gen, train_disc, train_gan, eval_gen, eval_gen_mean_iou
 from datetime import datetime
 import keras
+import os
 import tensorflow as tf
 print("finished imports")
 
@@ -53,14 +54,16 @@ def train_alternately(gen_model=None, gen_iou_model=None, d_model=None, gan_mode
     gen_model.summary()
     print("Metrics at 0 are", eval_gen(gen_model, data_path=data_path))
     iteration = 1
+    disc_checkpoints_path = get_path("disc_" + reg_or_stacked + "_" + gen_model_name)
+    os.mkdir(disc_checkpoints_path)
+    gan_checkpoints_path = get_path("gan_" + reg_or_stacked + "_" + gen_model_name)
+    os.mkdir(gan_checkpoints_path)
     while iteration <= 5:
         print("beginning train_disc")
-        disc_checkpoints_path = get_path("disc_" + reg_or_stacked + "_" + gen_model_name)
         train_disc(g_model=gen_model, d_model=d_model, reg_or_stacked=reg_or_stacked, checkpoints_path=disc_checkpoints_path,
                    epochs='early_stop', data_path=data_path)
 
         print("beginning train_gan")
-        gan_checkpoints_path = get_path("gan_" + reg_or_stacked + "_" + gen_model_name)
         train_gan(gan_model=gan_model, g_model=gen_model, checkpoints_path=gan_checkpoints_path,
                   epochs=2, data_path=data_path)
 
@@ -89,7 +92,9 @@ gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/
 
 # Train my stacked input gan
 disc_segnet_stacked = gan_disc.discriminator(gen_segnet)
-disc_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
+fake_acc = tf.keras.metrics.SpecificityAtSensitivity(0.5)  # true negative rate == Fake accuracy
+real_acc = tf.keras.metrics.SensitivityAtSpecificity(0.5)  # true positive rate == Real accuracy
+disc_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', fake_acc, real_acc, tf.keras.metrics.AUC()])
 print("len(disc_segnet_stacked.trainable_weights) = ", len(disc_segnet_stacked.trainable_weights))
 print("len(disc_segnet_stacked._collected_trainable_weights) = ", len(disc_segnet_stacked._collected_trainable_weights))
 disc_segnet_stacked.summary()
