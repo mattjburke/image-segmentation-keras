@@ -5,6 +5,7 @@ from .resnet50 import get_resnet50_encoder
 from .basic_models import vanilla_encoder
 from ..data_utils.data_loader import get_image_array
 # from .model_utils import add_input_dims
+from .config import IMAGE_ORDERING
 
 
 def discriminator(g_model, pretrained_weights=None, model_name="resnet50_discrim"):
@@ -15,7 +16,7 @@ def discriminator(g_model, pretrained_weights=None, model_name="resnet50_discrim
     # img_input, [f1, f2, f3, f4, f5] = get_resnet50_encoder(input_height=input_height,  input_width=input_width,
     #                                                        input_chan=23, pretrained=None)
 
-    img_input, levels = vanilla_encoder(input_height=input_height,  input_width=input_width, input_chan=23)
+    img_input, levels = vanilla_encoder(input_height=input_height,  input_width=input_width, input_chan=23, pool_size=7)
     # x = AveragePooling2D((7, 7))(f5)
     f4 = levels[3]
     x = Flatten()(f4)
@@ -25,6 +26,41 @@ def discriminator(g_model, pretrained_weights=None, model_name="resnet50_discrim
     model = keras.Model(img_input, x)
     # model = add_input_dims(model)
     # model.model_name = model_name
+    return model
+
+
+def tiny_disc(g_model, input_chan=23, pool_size=4):
+    input_height = g_model.output_height
+    input_width = g_model.output_width
+    pool_size = pool_size  # 2
+
+    # adapted from cifar10 example in keras docs
+    model = keras.Sequential()
+    if IMAGE_ORDERING == 'channels_first':
+        img_input = Input(shape=(input_chan, input_height, input_width))
+    elif IMAGE_ORDERING == 'channels_last':
+        img_input = Input(shape=(input_height, input_width, input_chan))
+    model.add(img_input)
+    model.add(Conv2D(32, (3, 3), padding='same'))
+    model.add(Activation('relu'))
+    model.add(Conv2D(32, (3, 3)))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(pool_size, pool_size)))
+    model.add(Dropout(0.25))
+
+    model.add(Conv2D(64, (3, 3), padding='same'))
+    model.add(Activation('relu'))
+    model.add(Conv2D(64, (3, 3)))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(pool_size, pool_size)))
+    model.add(Dropout(0.25))
+
+    model.add(Flatten())
+    model.add(Dense(32))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(1))
+    model.add(Activation('sigmoid'))
     return model
 
 

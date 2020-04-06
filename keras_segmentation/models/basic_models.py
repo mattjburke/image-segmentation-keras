@@ -4,12 +4,12 @@ import keras.backend as K
 
 from .config import IMAGE_ORDERING
 
-def vanilla_encoder(input_height=224,  input_width=224, input_chan=3):
+def vanilla_encoder(input_height=224,  input_width=224, input_chan=3, pool_size=2):
 
     kernel = 3
     filter_size = 64
     pad = 1
-    pool_size = 2
+    pool_size = pool_size  # 2
 
     if IMAGE_ORDERING == 'channels_first':
         img_input = Input(shape=(input_chan, input_height, input_width))

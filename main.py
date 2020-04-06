@@ -52,14 +52,14 @@ def train_alternately(gen_model=None, gen_iou_model=None, d_model=None, gan_mode
         train_gen(g_model=gen_segnet, checkpoints_path=gen_checkpoints_path, data_path=data_path)
 
     gen_model.summary()
-    print("Metrics at 0 are", eval_gen(gen_model, data_path=data_path))
+    gen_eval_path = get_path("gen_eval_" + reg_or_stacked + "_" + gen_model_name)
+    os.mkdir(gen_eval_path)
+    print("Metrics at 0 are", eval_gen(gen_model, log_path=gen_eval_path, data_path=data_path))
     iteration = 1
     disc_checkpoints_path = get_path("disc_" + reg_or_stacked + "_" + gen_model_name)
     os.mkdir(disc_checkpoints_path)
     gan_checkpoints_path = get_path("gan_" + reg_or_stacked + "_" + gen_model_name)
     os.mkdir(gan_checkpoints_path)
-    gen_eval_path = get_path("gen_eval_" + reg_or_stacked + "_" + gen_model_name)
-    os.mkdir(gen_eval_path)
     while iteration <= 5:
         print("beginning train_disc")
         train_disc(g_model=gen_model, d_model=d_model, reg_or_stacked=reg_or_stacked, checkpoints_path=disc_checkpoints_path,
@@ -91,9 +91,12 @@ gen_segnet.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['
 gen_checkpoints_path = get_path("gen_segnet")
 train_gen(gen_segnet, gen_checkpoints_path, data_path=data_path)
 # gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
+# below has 256x512 input, above is 128x256
+gen_segnet.load_weights('/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-04-06-01:02:44.305555/- 7- 0.59.hdf5')
 
 # Train my stacked input gan
-disc_segnet_stacked = gan_disc.discriminator(gen_segnet)
+# disc_segnet_stacked = gan_disc.discriminator(gen_segnet)
+disc_segnet_stacked = gan_disc.tiny_disc(gen_segnet)
 fake_acc = tf.keras.metrics.SpecificityAtSensitivity(0.5)  # true negative rate == Fake accuracy
 real_acc = tf.keras.metrics.SensitivityAtSpecificity(0.5)  # true positive rate == Real accuracy
 disc_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', fake_acc, real_acc, tf.keras.metrics.AUC()])
