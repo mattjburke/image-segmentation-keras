@@ -88,8 +88,8 @@ def train_alternately(gen_model=None, gen_iou_model=None, d_model=None, gan_mode
 # ------------------------- segnet -----------------------------------------
 gen_segnet = segnet(20, input_height=256, input_width=512, encoder_level=3)  # n_classes changed from 19 to 20
 gen_segnet.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
-gen_checkpoints_path = get_path("gen_segnet")
-train_gen(gen_segnet, gen_checkpoints_path, data_path=data_path)
+# gen_checkpoints_path = get_path("gen_segnet")
+# train_gen(gen_segnet, gen_checkpoints_path, data_path=data_path)
 # gen_segnet.load_weights("/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-03-30-12:21:46.457167/- 10- 0.44.hdf5")
 # below has 256x512 input, above is 128x256
 gen_segnet.load_weights('/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-04-06-01:02:44.305555/- 7- 0.59.hdf5')
