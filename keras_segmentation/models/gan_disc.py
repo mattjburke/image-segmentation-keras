@@ -36,12 +36,12 @@ def tiny_disc(g_model, input_chan=23, pool_size=4):
 
     # adapted from cifar10 example in keras docs
     model = keras.Sequential()
-    if IMAGE_ORDERING == 'channels_first':
-        img_input = Input(shape=(input_chan, input_height, input_width))
-    elif IMAGE_ORDERING == 'channels_last':
-        img_input = Input(shape=(input_height, input_width, input_chan))
-    model.add(img_input)
-    model.add(Conv2D(32, (3, 3), padding='same'))
+    # if IMAGE_ORDERING == 'channels_first':
+    #     img_input = Input(shape=(input_chan, input_height, input_width))
+    # elif IMAGE_ORDERING == 'channels_last':
+    #     img_input = Input(shape=(input_height, input_width, input_chan))
+    # model.add(img_input)
+    model.add(Conv2D(32, (3, 3), padding='same', input_shape=(input_chan, input_height, input_width)))
     model.add(Activation('relu'))
     model.add(Conv2D(32, (3, 3)))
     model.add(Activation('relu'))
