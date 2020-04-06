@@ -255,7 +255,7 @@ def train_gan(checkpoints_path=None, gan_model=None, g_model=None, epochs=2,
     print("finished gan training at", datetime.now())
 
 
-def eval_gen(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
+def eval_gen(gen_model, log_path, data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
     test_images = data_path + "images_prepped_test/"
     test_annotations = data_path + "annotations_prepped_test/"
 
@@ -272,61 +272,18 @@ def eval_gen(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-segmentat
         test_images, test_annotations, batch_size, n_classes,
         input_height, input_width, output_height, output_width, do_augment=do_augment)
 
+    history_csv = log_path + "eval_log.csv"
+    csv_logger = keras.callbacks.callbacks.CSVLogger(history_csv, append=True)
+
     # print(gen_model.metrics_names)
     # there are 1525 test images, 2975 train, and 500 val
-    return gen_model.evaluate_generator(test_data_gen, steps=305, use_multiprocessing=True, verbose=1)
+    return gen_model.evaluate_generator(test_data_gen, steps=305, use_multiprocessing=True, verbose=1, callbacks=[csv_logger])
 
 
     # from https://github.com/keras-team/keras/blob/master/keras/engine/network.py
     # class Network(Layer):
-    """A Network is a directed acyclic graph of layers.
-    It is the topological form of a "model". A Model
-    is simply a Network with added training routines.
-    # Properties
-        name
-        inputs
-        outputs
-        layers
-        input_spec (list of class instances)
-            each entry describes one required input:
-                - ndim
-                - dtype
-        trainable (boolean)
-        dtype
-        input_shape
-        output_shape
-        weights (list of variables)
-        trainable_weights (list of variables)
-        non_trainable_weights (list of variables)
-        losses
-        updates
-        state_updates
-        stateful
-    # Methods
-        __call__
-        summary
-        get_layer
-        get_weights
-        set_weights
-        get_config
-        compute_output_shape
-        save
-        add_loss
-        add_update
-        get_losses_for
-        get_updates_for
-        to_json
-        to_yaml
-        reset_states
-    # Class Methods
-        from_config
-    # Raises
-        TypeError: if input tensors are not Keras tensors
-            (tensors returned by `Input`).
-    """
 
-
-def eval_gen_mean_iou(gen_model, data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
+def eval_gen_mean_iou(gen_model, log_path, data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
     test_images = data_path + "images_prepped_test/"
     test_annotations = data_path + "annotations_prepped_test/"
 

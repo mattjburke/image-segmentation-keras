@@ -58,6 +58,8 @@ def train_alternately(gen_model=None, gen_iou_model=None, d_model=None, gan_mode
     os.mkdir(disc_checkpoints_path)
     gan_checkpoints_path = get_path("gan_" + reg_or_stacked + "_" + gen_model_name)
     os.mkdir(gan_checkpoints_path)
+    gen_eval_path = get_path("gen_eval_" + reg_or_stacked + "_" + gen_model_name)
+    os.mkdir(gen_eval_path)
     while iteration <= 5:
         print("beginning train_disc")
         train_disc(g_model=gen_model, d_model=d_model, reg_or_stacked=reg_or_stacked, checkpoints_path=disc_checkpoints_path,
@@ -78,7 +80,7 @@ def train_alternately(gen_model=None, gen_iou_model=None, d_model=None, gan_mode
 
         # gen_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
         # gen_model.summary()
-        print("Metrics of gen at", iteration, "are", eval_gen(gen_model, data_path=data_path))
+        print("Metrics of gen at", iteration, "are", eval_gen(gen_model, log_path=gen_eval_path, data_path=data_path))
         # print("Metrics of gen_iou at", iteration, "are", eval_gen_mean_iou(gen_iou_model, data_path=data_path))
         iteration += 1
         # implement stopping condition
