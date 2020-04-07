@@ -97,7 +97,8 @@ def train_all(gen_model=None, d_model=None, gan_model=None, gen_model_name="unkn
     os.mkdir(gan_checkpoints_path)
 
     #train gen and disc/gan alternating
-    for _ in range(0, 10):
+    for i in range(0, 10):
+        print("beginning loop ", i)
         print("beginning train_gen")
         train_gen(g_model=gen_model, epochs=3, checkpoints_path=gen_checkpoints_path, data_path=data_path)
         print("beginning train_alternately of disc/gan")
