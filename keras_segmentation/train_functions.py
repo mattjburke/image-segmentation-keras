@@ -24,7 +24,7 @@ def train_gen(g_model=None, epochs=3, checkpoints_path=None, load_g_model_path=N
     assert checkpoints_path is not None
     assert g_model is not None
 
-    os.mkdir(checkpoints_path)
+    # os.mkdir(checkpoints_path)
 
     g_model.train(
         train_images=data_path + "images_prepped_train/",
