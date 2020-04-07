@@ -17,7 +17,7 @@ from keras_segmentation.models.model_utils import add_input_dims
 print("tensorflow version is ", tf.__version__)
 
 
-def train_gen(g_model=None, checkpoints_path=None, load_g_model_path=None,
+def train_gen(g_model=None, epochs=3, checkpoints_path=None, load_g_model_path=None,
               data_path="/work/LAS/jannesar-lab/mburke/image-segmentation-keras/cityscape/prepped/"):
     if (checkpoints_path is None) or (g_model is None):
         print("train_gen() needs a g_model and checkpoints_path")
@@ -34,7 +34,7 @@ def train_gen(g_model=None, checkpoints_path=None, load_g_model_path=None,
         n_classes=None,
         verify_dataset=True,
         checkpoints_path=checkpoints_path,
-        epochs=1000,  # doesn't do anything now
+        epochs=epochs,  # doesn't do anything now
         batch_size=25,
         validate=True,
         val_images=data_path + "images_prepped_val",

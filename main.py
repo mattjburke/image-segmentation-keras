@@ -46,44 +46,64 @@ def flatten_model(model_nested):
     return model_flat
 
 
-def train_alternately(gen_model=None, gen_iou_model=None, d_model=None, gan_model=None, gen_model_name="unknown", reg_or_stacked="stacked", train_gen_first=False):
-    if train_gen_first:
-        gen_checkpoints_path = get_path("gen_" + reg_or_stacked + "_" + gen_model_name)
-        train_gen(g_model=gen_segnet, checkpoints_path=gen_checkpoints_path, data_path=data_path)
+def train_alternately(gen_model=None, d_model=None, disc_checkpoints_path=None, d_epochs=2,
+                      gan_model=None, gan_checkpoints_path=None, gan_epochs=2, cycles=2,
+                      gen_model_name="unknown", reg_or_stacked="stacked", train_gen_first=False):
+    # if train_gen_first:
+    #     gen_checkpoints_path = get_path("gen_" + reg_or_stacked + "_" + gen_model_name)
+    #     train_gen(g_model=gen_segnet, checkpoints_path=gen_checkpoints_path, data_path=data_path)
 
-    gen_model.summary()
-    gen_eval_path = get_path("gen_eval_" + reg_or_stacked + "_" + gen_model_name)
-    os.mkdir(gen_eval_path)
-    print("Metrics at 0 are", eval_gen(gen_model, log_path=gen_eval_path, data_path=data_path))
-    iteration = 1
+    # gen_model.summary()
+    # gen_eval_path = get_path("gen_eval_" + reg_or_stacked + "_" + gen_model_name)
+    # os.mkdir(gen_eval_path)
+    # print("Metrics at 0 are", eval_gen(gen_model, log_path=gen_eval_path, data_path=data_path))
+    iteration = 0
+    # disc_checkpoints_path = get_path("disc_" + reg_or_stacked + "_" + gen_model_name)
+    # os.mkdir(disc_checkpoints_path)
+    # gan_checkpoints_path = get_path("gan_" + reg_or_stacked + "_" + gen_model_name)
+    # os.mkdir(gan_checkpoints_path)
+    while iteration < cycles:
+        print("beginning train_disc")
+        train_disc(g_model=gen_model, d_model=d_model, reg_or_stacked=reg_or_stacked,
+                   checkpoints_path=disc_checkpoints_path, epochs=d_epochs, data_path=data_path)
+
+        print("beginning train_gan")
+        train_gan(gan_model=gan_model, g_model=gen_model, checkpoints_path=gan_checkpoints_path,
+                  epochs=gan_epochs, data_path=data_path)
+
+        # print("transferring weights")
+        # for layer in gan_model.layers:
+        #     if layer.name == 'generator':
+        #         print("found generator layer")
+        #         print("trainable:", layer.trainable is True)
+        #         # gen_model.set_weights(layer.get_weights())
+        #         # assert gen_model.get_weights() == layer.get_weights()  # fails
+        #         # print("weights equal")
+
+        # gen_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
+        # gen_model.summary()
+        # print("Metrics of gen at", iteration, "are", eval_gen(gen_model, log_path=gen_eval_path, data_path=data_path))
+        # print("Metrics of gen_iou at", iteration, "are", eval_gen_mean_iou(gen_iou_model, data_path=data_path))
+        iteration += 1
+        # implement stopping condition
+
+def train_all(gen_model=None, d_model=None, gan_model=None, gen_model_name="unknown", reg_or_stacked="stacked"):
+    # create all checkpoint paths (will have to track specific epoch via val_loss in folder name)
+    gen_checkpoints_path = get_path("gen_eval_" + reg_or_stacked + "_" + gen_model_name)
+    os.mkdir(gen_checkpoints_path)
     disc_checkpoints_path = get_path("disc_" + reg_or_stacked + "_" + gen_model_name)
     os.mkdir(disc_checkpoints_path)
     gan_checkpoints_path = get_path("gan_" + reg_or_stacked + "_" + gen_model_name)
     os.mkdir(gan_checkpoints_path)
-    while iteration <= 5:
-        print("beginning train_disc")
-        train_disc(g_model=gen_model, d_model=d_model, reg_or_stacked=reg_or_stacked, checkpoints_path=disc_checkpoints_path,
-                   epochs='early_stop', data_path=data_path)
 
-        print("beginning train_gan")
-        train_gan(gan_model=gan_model, g_model=gen_model, checkpoints_path=gan_checkpoints_path,
-                  epochs=2, data_path=data_path)
-
-        # print("transferring weights")
-        for layer in gan_model.layers:
-            if layer.name == 'generator':
-                print("found generator layer")
-                print("trainable:", layer.trainable is True)
-                # gen_model.set_weights(layer.get_weights())
-                # assert gen_model.get_weights() == layer.get_weights()  # fails
-                # print("weights equal")
-
-        # gen_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', tf.keras.metrics.AUC()])
-        # gen_model.summary()
-        print("Metrics of gen at", iteration, "are", eval_gen(gen_model, log_path=gen_eval_path, data_path=data_path))
-        # print("Metrics of gen_iou at", iteration, "are", eval_gen_mean_iou(gen_iou_model, data_path=data_path))
-        iteration += 1
-        # implement stopping condition
+    #train gen and disc/gan alternating
+    for _ in range(0, 10):
+        print("beginning train_gen")
+        train_gen(g_model=gen_model, epochs=3, checkpoints_path=gen_checkpoints_path, data_path=data_path)
+        print("beginning train_alternately of disc/gan")
+        train_alternately(gen_model=gen_model, d_model=d_model, disc_checkpoints_path=disc_checkpoints_path, d_epochs=2,
+                          gan_model=gan_model, gan_checkpoints_path=gan_checkpoints_path, gan_epochs=2, cycles=2,
+                          reg_or_stacked=reg_or_stacked)
 
 # ------------------------- segnet -----------------------------------------
 gen_segnet = segnet(20, input_height=256, input_width=512, encoder_level=3)  # n_classes changed from 19 to 20
@@ -95,8 +115,8 @@ gen_segnet.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['
 gen_segnet.load_weights('/work/LAS/jannesar-lab/mburke/image-segmentation-keras/checkpoints/gen_segnet-2020-04-06-01:02:44.305555/- 7- 0.59.hdf5')
 
 # Train my stacked input gan
-# disc_segnet_stacked = gan_disc.discriminator(gen_segnet)
-disc_segnet_stacked = gan_disc.tiny_disc(gen_segnet)
+disc_segnet_stacked = gan_disc.discriminator(gen_segnet)
+# disc_segnet_stacked = gan_disc.tiny_disc(gen_segnet)
 fake_acc = tf.keras.metrics.SpecificityAtSensitivity(0.5)  # true negative rate == Fake accuracy
 real_acc = tf.keras.metrics.SensitivityAtSpecificity(0.5)  # true positive rate == Real accuracy
 disc_segnet_stacked.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', fake_acc, real_acc, tf.keras.metrics.AUC()])

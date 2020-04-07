@@ -38,7 +38,7 @@ def train(model,
           n_classes=None,
           verify_dataset=True,
           checkpoints_path=None,
-          epochs=1000,  # not used since early stopping callback implemented
+          epochs=3,  # max epochs, could be fewer if early stopping is triggered (if patience < epochs)
           batch_size=25,
           validate=False,
           val_images=None,
@@ -145,7 +145,7 @@ def train(model,
         model.fit_generator(train_gen, steps_per_epoch,
                             validation_data=val_gen,
                             validation_steps=val_steps_per_epoch,
-                            epochs=1000,
+                            epochs=epochs,
                             use_multiprocessing=gen_use_multiprocessing,
                             callbacks=[csv_logger, save_chckpts, early_stop])
 
